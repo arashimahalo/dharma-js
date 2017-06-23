@@ -111,6 +111,10 @@ contract Loan {
     return loans[uuid].timelock.timeLock;
   }
 
+  function getTotalInvested(bytes32 uuid) returns (uint) {
+    return loans[uuid].totalInvested;
+  }
+
   function () payable {
     throw;
   }

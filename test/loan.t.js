@@ -31,8 +31,11 @@ describe('Loan', function() {
     })
 
     it('should throw when instantiated with terms that are malformed', function() {
-      let malformedNumberType = Object.assign({ principal: 'no strings for number type values' }, terms);
-      let malformedStringType = Object.assign({ periodType: 100 }, terms);
+      let malformedNumberType = Object.assign({}, terms);
+      malformedNumberType.principal = 'no strings for number type values';
+
+      let malformedStringType = Object.assign({}, terms);
+      malformedStringType.periodType = 100
 
       expect(() => { new Loan(web3, uuid, malformedNumberType) }).to.throwException();
       expect(() => { new Loan(web3, uuid, malformedStringType) })
@@ -67,21 +70,23 @@ describe('Loan', function() {
 
   describe('#attest()', function() {
     it('should not let anyone but the attestor defined in the terms attest to the loan', function(done) {
-      loan.attest('QmQ2pqaBQi4VaRGBxybn3t4Z3673wZP9TFchbHhFsQqL4r', { from: web3.eth.accounts[2] }, function(err, result) {
+      loan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE', { from: web3.eth.accounts[2] }, function(err, result) {
         if (!err) done('should return error');
         else done();
       })
     })
 
     it('should allow the defined attestor to attest to the loan', function(done) {
-      loan.attest('QmQ2pqaBQi4VaRGBxybn3t4Z3673wZP9TFchbHhFsQqL4r', { from: web3.eth.accounts[1], gas: 1000000 }, function(err, result) {
+      loan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE', { from: web3.eth.accounts[1], gas: 1000000 }, function(err, result) {
         if (err) done(err);
         else {
-          done();
-          // loan.getAttestation(function(err, attestation) {
-          //   expect(JSON.stringify(attestation)).to.be.exactly(JSON.stringify(exampleAttestation));
-          //   done();
-          // })
+          loan.getAttestation(function(err, attestation) {
+            if (err) done(err)
+            else {
+              expect(JSON.stringify(attestation)).to.be(JSON.stringify(exampleAttestation));
+              done();
+            }
+          })
         }
       })
     })
@@ -100,8 +105,8 @@ describe('Loan', function() {
       const funder = web3.eth.accounts[2];
       loan.fund(amount, funder, function(err, txHash) {
         if (err) done(err);
-        expect(loan.balanceOf(funder)).to.be(amount);
-        expect(loan.amountFunded()).to.be(amount);
+        expect(loan.balanceOf(funder).equals(web3.toBigNumber(amount))).to.be(true);
+        expect(loan.amountFunded().equals(web3.toBigNumber(amount))).to.be(true);
         done();
       })
     })
@@ -113,8 +118,8 @@ describe('Loan', function() {
       const funder = web3.eth.accounts[2];
       loan.fund(amount, tokenRecipient, { from: funder }, function(err, txHash) {
         if (err) done(err);
-        expect(loan.balanceOf(tokenRecipient)).to.be(amount);
-        expect(loan.amountFunded()).to.be(total);
+        expect(loan.balanceOf(tokenRecipient).equals(amount)).to.be(true);
+        expect(loan.amountFunded().equals(total)).to.be(true);
         done();
       });
     })
