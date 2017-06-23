@@ -1,0 +1,76 @@
+{
+  "contract_name": "TimeLockLib",
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "self",
+          "type": "TimeLockLib.TimeLock storage"
+        }
+      ],
+      "name": "beforeTimeLock",
+      "outputs": [
+        {
+          "name": "beforeTimeLock",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "self",
+          "type": "TimeLockLib.TimeLock storage"
+        }
+      ],
+      "name": "afterTimeLock",
+      "outputs": [
+        {
+          "name": "afterTimeLock",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    }
+  ],
+  "unlinked_binary": "0x606060405234610000575b60a7806100186000396000f300606060405263ffffffff60e060020a6000350416633f9a3e608114602c578063dc59e908146049575b6000565b60356004356066565b604080519115158252519081900360200190f35b60356004356071565b604080519115158252519081900360200190f35b80544211155b919050565b805442115b9190505600a165627a7a72305820d79147779219f6cbcf1955000b525aa4622dafd8a5b5f3471366e035748edbe50029",
+  "networks": {
+    "1498147100256": {
+      "events": {},
+      "links": {},
+      "address": "0x384c3a4fc412541a7a4530b949ea18e35e054919",
+      "updated_at": 1498180890531
+    },
+    "1498188206477": {
+      "events": {},
+      "links": {},
+      "address": "0x965f5df36f7fe56f14efda9ccce424f28bebd935",
+      "updated_at": 1498188228347
+    },
+    "1498189630407": {
+      "events": {},
+      "links": {},
+      "address": "0x939a8e21d3293b9897b6f9de423defa2bd4c790e",
+      "updated_at": 1498189647474
+    },
+    "1498189913253": {
+      "events": {},
+      "links": {},
+      "address": "0xf26a38bcb834e5232b1d35af974bc3650649a8ee",
+      "updated_at": 1498189918864
+    },
+    "1498191114058": {
+      "events": {},
+      "links": {},
+      "address": "0xde20579117e8e15fc8f03780d5a696d7a4703ef7",
+      "updated_at": 1498191126320
+    }
+  },
+  "schema_version": "0.0.5",
+  "updated_at": 1498191126320
+}

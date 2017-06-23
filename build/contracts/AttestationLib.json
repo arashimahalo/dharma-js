@@ -1,0 +1,269 @@
+{
+  "contract_name": "AttestationLib",
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "self",
+          "type": "AttestationLib.Attestation storage"
+        }
+      ],
+      "name": "beforeAttestedTo",
+      "outputs": [
+        {
+          "name": "beforeAttestedTo",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "self",
+          "type": "AttestationLib.Attestation storage"
+        }
+      ],
+      "name": "fromAttestor",
+      "outputs": [
+        {
+          "name": "fromAttestor",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "self",
+          "type": "AttestationLib.Attestation storage"
+        }
+      ],
+      "name": "afterAttestedTo",
+      "outputs": [
+        {
+          "name": "attestedTo",
+          "type": "bool"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "self",
+          "type": "AttestationLib.Attestation storage"
+        },
+        {
+          "name": "_attestor",
+          "type": "address"
+        }
+      ],
+      "name": "setAttestor",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "self",
+          "type": "AttestationLib.Attestation storage"
+        },
+        {
+          "name": "uuid",
+          "type": "bytes32"
+        },
+        {
+          "name": "_attestationCommitment",
+          "type": "bytes"
+        }
+      ],
+      "name": "attest",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "name": "_uuid",
+          "type": "bytes32"
+        },
+        {
+          "indexed": true,
+          "name": "_attestor",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "_timestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "Attested",
+      "type": "event"
+    }
+  ],
+  "unlinked_binary": "0x606060405234610000575b6102d9806100196000396000f300606060405263ffffffff60e060020a600035041663886aaad08114610050578063c5b4df551461006f578063e43930be1461008e578063eeaff5f5146100ad578063f096360f146100c6575b610000565b61005b60043561011a565b604080519115158252519081900360200190f35b61005b600435610137565b604080519115158252519081900360200190f35b61005b60043561014e565b604080519115158252519081900360200190f35b6100c4600435600160a060020a036024351661016c565b005b604080516020600460443581810135601f81018490048402850184019095528484526100c494823594602480359560649492939190920191819084018382808284375094965061019795505050505050565b005b60018181015460029181161561010002600019011604155b919050565b805433600160a060020a039081169116145b919050565b6001818101546002918116156101000260001901160415155b919050565b815473ffffffffffffffffffffffffffffffffffffffff1916600160a060020a0382161782555b5050565b6101a083610137565b8015156101ac57610000565b6101b58461011a565b8015156101c157610000565b82856001019080519060200190828054600181600116156101000203166002900490600052602060002090601f016020900481019282601f1061020f57805160ff191683800117855561023c565b8280016001018555821561023c579182015b8281111561023c578251825591602001919060010190610221565b5b5061025d9291505b808211156102595760008155600101610245565b5090565b50508454604080514281529051600160a060020a039092169186917f61cae4201bb8c0117495b22a70f5202410666b349c27302dac280dc054b60f2a919081900360200190a35b5b505b505050505600a165627a7a72305820a49bf5f95f1d1169255820aee3e17e7f0a9cf138808555d7796f1d59c1d551a20029",
+  "networks": {
+    "1498147100256": {
+      "events": {
+        "0x61cae4201bb8c0117495b22a70f5202410666b349c27302dac280dc054b60f2a": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "_uuid",
+              "type": "bytes32"
+            },
+            {
+              "indexed": true,
+              "name": "_attestor",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "_timestamp",
+              "type": "uint256"
+            }
+          ],
+          "name": "Attested",
+          "type": "event"
+        }
+      },
+      "links": {},
+      "address": "0x650b19b791f681b9f8208c7bdea1812ce80ed3cb",
+      "updated_at": 1498180890532
+    },
+    "1498188206477": {
+      "events": {
+        "0x61cae4201bb8c0117495b22a70f5202410666b349c27302dac280dc054b60f2a": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "_uuid",
+              "type": "bytes32"
+            },
+            {
+              "indexed": true,
+              "name": "_attestor",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "_timestamp",
+              "type": "uint256"
+            }
+          ],
+          "name": "Attested",
+          "type": "event"
+        }
+      },
+      "links": {},
+      "address": "0x18d4152eb203cb973eaed52479b533255a8b4416",
+      "updated_at": 1498188228347
+    },
+    "1498189630407": {
+      "events": {
+        "0x61cae4201bb8c0117495b22a70f5202410666b349c27302dac280dc054b60f2a": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "_uuid",
+              "type": "bytes32"
+            },
+            {
+              "indexed": true,
+              "name": "_attestor",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "_timestamp",
+              "type": "uint256"
+            }
+          ],
+          "name": "Attested",
+          "type": "event"
+        }
+      },
+      "links": {},
+      "address": "0x2b4ed74a5108fdf5fa2d3222caf4b6d73efa19da",
+      "updated_at": 1498189647474
+    },
+    "1498189913253": {
+      "events": {
+        "0x61cae4201bb8c0117495b22a70f5202410666b349c27302dac280dc054b60f2a": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "_uuid",
+              "type": "bytes32"
+            },
+            {
+              "indexed": true,
+              "name": "_attestor",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "_timestamp",
+              "type": "uint256"
+            }
+          ],
+          "name": "Attested",
+          "type": "event"
+        }
+      },
+      "links": {},
+      "address": "0x504784d002cc271adecd44ccc110398f37512ea0",
+      "updated_at": 1498189918864
+    },
+    "1498191114058": {
+      "events": {
+        "0x61cae4201bb8c0117495b22a70f5202410666b349c27302dac280dc054b60f2a": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "_uuid",
+              "type": "bytes32"
+            },
+            {
+              "indexed": true,
+              "name": "_attestor",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "_timestamp",
+              "type": "uint256"
+            }
+          ],
+          "name": "Attested",
+          "type": "event"
+        }
+      },
+      "links": {},
+      "address": "0xbc238f182cd484e0ac97f8befe49dfe0492284bc",
+      "updated_at": 1498191126320
+    }
+  },
+  "schema_version": "0.0.5",
+  "updated_at": 1498191126320
+}

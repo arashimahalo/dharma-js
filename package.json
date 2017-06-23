@@ -1,0 +1,33 @@
+{
+  "name": "dharma",
+  "version": "0.0.1",
+  "description": "JS wrapper for interacting with the Dharma Loan network on Ethereum",
+  "main": "index.js",
+  "scripts": {
+    "test": "ENV=test mocha -r test/init.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "."
+  },
+  "author": "Nadav Hollander",
+  "license": "ISC",
+  "dependencies": {
+    "design-pattern": "0.0.21",
+    "is-ipfs": "^0.3.0",
+    "json-stable-stringify": "^1.0.1",
+    "uuid": "^3.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.19.0",
+    "eslint-config-airbnb": "^15.0.1",
+    "eslint-config-airbnb-base": "^11.2.0",
+    "eslint-plugin-import": "^2.5.0",
+    "eslint-plugin-jsx-a11y": "^5.0.3",
+    "eslint-plugin-react": "^7.1.0",
+    "expect.js": "^0.3.1",
+    "mocha": "^3.4.2",
+    "truffle": "^3.2.5",
+    "web3": "^0.19.0"
+  }
+}
