@@ -204,8 +204,8 @@ contract Loan {
    tokens an investor X is entitled to equals:
       ((amountXInvested / totalSupply) * redeemableValue) - amountRedeemedByX
   */
-  function redeemValue(bytes32 uuid) {
-    loans[uuid].token.redeemValue(uuid);
+  function redeemValue(bytes32 uuid, address recipient) {
+    loans[uuid].token.redeemValue(uuid, recipient);
   }
 
   function getRedeemableValue(bytes32 uuid) returns (uint) {

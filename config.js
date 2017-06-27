@@ -1,11 +1,11 @@
 const config = {
   development: {
     provider: 'http://localhost:8546',
-    contractAddress: '0x7aadb181680c6c8ed7512986b00a5dd12bfac272'
+    contractAddress: '0xa470eb3ab9db02cf36af36ce68d2089a82cd8962'
   },
   test: {
     provider: 'http://localhost:8546',
-    contractAddress: '0x7aadb181680c6c8ed7512986b00a5dd12bfac272'
+    contractAddress: '0xa470eb3ab9db02cf36af36ce68d2089a82cd8962'
   }
 }
 

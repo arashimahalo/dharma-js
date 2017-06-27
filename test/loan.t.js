@@ -13,7 +13,6 @@ describe('Loan', function() {
     web3.eth.getBlock('latest', function(err, result) {
       if (err) done(err);
       else {
-        console.log(result.timestamp);
         const timelock = result.timestamp + 60 * 60;
         terms = {
           borrower: ACCOUNTS[0],
@@ -76,12 +75,12 @@ describe('Loan', function() {
       })
     })
 
-    // it("should return error when broadcasting a loan request that already exists", function(done) {
-    //   loan.broadcast(function(err, txHash) {
-    //     if (!err) done("should return error");
-    //     else done();
-    //   })
-    // })
+    it("should return error when broadcasting a loan request that already exists", function(done) {
+      loan.broadcast(function(err, txHash) {
+        if (!err) done("should return error");
+        else done();
+      })
+    })
   })
 
   describe('#attest()', function() {
@@ -200,8 +199,10 @@ describe('Loan', function() {
       loan.repay(100, { from: ACCOUNTS[0] }, function(err, result) {
         if (err) done(err)
         else {
-          expect(loan.getRedeemableValue().equals(100)).to.be(true);
-          done();
+          loan.amountRepaid(function(err, amount) {
+            expect(amount.equals(100)).to.be(true);
+            done();
+          })
         }
       })
     });
@@ -240,14 +241,16 @@ describe('Loan', function() {
         "period has lapsed.", function(done) {
       util.setTimeForward(2 * 60 * 60, function(err, result) {
         if (err) done(err);
-        const balanceBefore = web3.eth.getBalance(ACCOUNTS[1])
-        unpopularLoan.withdrawInvestment({ from: ACCOUNTS[2] }, function(err, result) {
+        const balanceBefore = web3.eth.getBalance(ACCOUNTS[2])
+        unpopularLoan.withdrawInvestment({ from: ACCOUNTS[2] }, function(err, txHash) {
           if (err) done(err);
           else {
-            const balanceAfter = web3.eth.getBalance(ACCOUNTS[2])
-            const gasCosts = util.getGasCosts(result);
-            expect(balanceAfter.sub(balanceBefore).plus(gasCosts).equals(investmentAmount)).to.be(true);
-            done();
+            util.getGasCosts(txHash, function(err, gasCosts) {
+              let balanceAfter = web3.eth.getBalance(ACCOUNTS[2])
+
+              expect(balanceAfter.sub(balanceBefore).plus(gasCosts).equals(investmentAmount)).to.be(true);
+              done();
+            });
           }
         })
       })
@@ -278,7 +281,7 @@ describe('Loan', function() {
     it("should not allow an investor to redeem value repaid to the loan " +
         "before the loan is fully funded and principal has been transferred " +
         "to the borrower", function(done) {
-      repaidLoan.redeemValue({ from: ACCOUNTS[2] }, function(err, result) {
+      repaidLoan.redeemValue(ACCOUNTS[2], { from: ACCOUNTS[2] }, function(err, result) {
         if (!err) done("should return error");
         else done();
       })
@@ -291,13 +294,13 @@ describe('Loan', function() {
         repaidLoan.repay(1000, function(err, result) {
           if (err) done(err)
           const balanceBefore = web3.eth.getBalance(ACCOUNTS[2])
-          repaidLoan.redeemValue(ACCOUNTS[2], { from: ACCOUNTS[2] }, function(err, result) {
+          repaidLoan.redeemValue(ACCOUNTS[2], { from: ACCOUNTS[2] }, function(err, txHash) {
             if (err) done(err);
-
             const balanceAfter = web3.eth.getBalance(ACCOUNTS[2]);
-            const gasCosts = util.getGasCosts(result);
-            expect(balanceAfter.minus(balanceBefore).plus(gasCosts).equals(800)).to.be(true);
-            done();
+            util.getGasCosts(txHash, function(err, gasCosts) {
+              expect(balanceAfter.minus(balanceBefore).plus(gasCosts).equals(800)).to.be(true);
+              done();
+            });
           })
         })
       })
@@ -309,15 +312,5 @@ describe('Loan', function() {
         else done();
       })
     })
-
-    describe("#getBalanceRepaid()", function() {
-      it("should allow anyone to get the amount repaid to a given loan", function(done) {
-        repaidLoan.getBalanceRepaid(function(err, result) {
-          if (err) done(err);
-          expect(result).to.be(amountRepaid);
-          done();
-        })
-      })
-    });
   });
 })

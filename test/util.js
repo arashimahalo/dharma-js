@@ -1,7 +1,7 @@
 class Util {
   constructor(web3) {
     this.web3 = web3;
-    this.gasPrice = web3.toBigNumber('100000000000');
+    this.gasPrice = web3.toBigNumber('1');
   }
 
   setTimeForward(timeDiff, callback) {
@@ -13,8 +13,14 @@ class Util {
     }, callback);
   }
 
-  getGasCosts(result) {
-    return this.gasPrice.times(result.receipt.gasUsed);
+  getGasCosts(txHash, callback) {
+    this.web3.eth.getTransactionReceipt(txHash, function(err, tx) {
+      if (err) callback(err, null)
+      else {
+        const gasCost = this.gasPrice.times(tx.gasUsed);
+        callback(null, gasCost);
+      }
+    }.bind(this))
   }
 }
 
