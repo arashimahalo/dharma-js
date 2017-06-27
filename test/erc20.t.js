@@ -44,13 +44,14 @@ describe('ERC20', function() {
 
   describe('#transfer()', function() {
     it("should allow an investor to transfer their balance to someone else", function(done) {
-      loan.transfer(400, ACCOUNTS[3], { from: ACCOUNTS[2] }, function(err, result) {
+      loan.transfer(ACCOUNTS[3], 400, { from: ACCOUNTS[2] }, function(err, result) {
         if (err) done(err)
         else {
           loan.balanceOf(ACCOUNTS[3], function(err, balance) {
             expect(balance.equals(400)).to.be(true);
             loan.balanceOf(ACCOUNTS[2], function(err, balance) {
               expect(balance.equals(600)).to.be(true);
+              done();
             })
           })
         }
@@ -72,15 +73,9 @@ describe('ERC20', function() {
         else {
           loan.allowance(ACCOUNTS[2], ACCOUNTS[4], function(err, allowance) {
             expect(allowance.equals(200)).to.be(true);
+            done();
           })
         }
-      })
-    })
-
-    it('should not allow a non-owner of a certain balance to approve usage', function(done) {
-      loan.approve(ACCOUNTS[5], 200, { from: ACCOUNTS[5] }, function(err, result) {
-        if (!err) done("should return error");
-        else done();
       })
     })
   })
@@ -94,6 +89,7 @@ describe('ERC20', function() {
             if(err) done(err);
             else {
               expect(balance.equals(100)).to.be(true);
+              done();
             }
           })
         }
