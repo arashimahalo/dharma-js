@@ -114,7 +114,7 @@ describe('Loan', function() {
     })
   })
 
-  describe('#fund', function() {
+  describe('#fund()', function() {
     it("should let user fund a loan", function(done) {
       const amount = 100;
       const funder = ACCOUNTS[2];
