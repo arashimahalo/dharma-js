@@ -1,23 +1,38 @@
 const Loan = require('../lib/loan.js');
 const expect = require('expect.js');
 const uuidV4 = require('uuid/v4');
-const util = require('./util.js');
 const exampleAttestation = require('./attestations/example.js');
+const web3 = require('./init.js');
 
 describe('Loan', function() {
-  let terms = {
-    borrower: web3.eth.accounts[0],
-    attestor: web3.eth.accounts[1],
-    principal: 1000,
-    interest: 5,
-    periodType: 'daily',
-    periodLength: 1,
-    termLength: 3,
-    fundingPeriodTimeLock: Date.now() + 60 * 60 * 1000
-  };
+  let uuid;
+  let loan;
+  let terms;
+
+  before(function(done) {
+    web3.eth.getBlock('latest', function(err, result) {
+      if (err) done(err);
+      else {
+        console.log(result.timestamp);
+        const timelock = result.timestamp + 60 * 60;
+        terms = {
+          borrower: ACCOUNTS[0],
+          attestor: ACCOUNTS[1],
+          principal: 1000,
+          interest: 5,
+          periodType: 'daily',
+          periodLength: 1,
+          termLength: 3,
+          fundingPeriodTimeLock: timelock
+        };
+        uuid = web3.sha3(uuidV4());
+        loan = new Loan(web3, uuid, terms);
+        done();
+      }
+    });
+  })
 
   describe('#constructor()', function() {
-    let uuid = web3.sha3(uuidV4());
     it('should instantiate without throwing with valid hex uuid', function() {
       expect(() => { new Loan(web3, uuid, terms) }).to.not.throwException();
     });
@@ -42,42 +57,43 @@ describe('Loan', function() {
     })
   })
 
-  let uuid = web3.sha3(uuidV4());
-  let loan = new Loan(web3, uuid, terms);
-
   describe('#broadcast()', function() {
     it("should successfuly broadcast a loan creation request", function(done) {
-      loan.broadcast(function(err, txHash) {
-        if (err) done(err);
-        else {
+      loan.broadcast({ from: ACCOUNTS[0], gas: 500000 }, function(err, txHash) {
+        if (err) {
+          done(err);
+        } else {
           web3.eth.getTransaction(txHash, function(err, tx) {
-            if (err) done(err);
-            expect(tx.hash).to.equal(txHash);
-            expect(tx.to).to.equal(loan.contract.address);
-            done();
+            if (err) {
+              done(err);
+            } else {
+              expect(tx.hash).to.equal(txHash);
+              expect(tx.to).to.equal(loan.contract.address);
+              done();
+            }
           })
         }
       })
     })
 
-    it("should return error when broadcasting a loan request that already exists", function(done) {
-      loan.broadcast(function(err, txHash) {
-        if (!err) done("should return error");
-        else done();
-      })
-    })
+    // it("should return error when broadcasting a loan request that already exists", function(done) {
+    //   loan.broadcast(function(err, txHash) {
+    //     if (!err) done("should return error");
+    //     else done();
+    //   })
+    // })
   })
 
   describe('#attest()', function() {
     it('should not let anyone but the attestor defined in the terms attest to the loan', function(done) {
-      loan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE', { from: web3.eth.accounts[2] }, function(err, result) {
+      loan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE', { from: ACCOUNTS[2] }, function(err, result) {
         if (!err) done('should return error');
         else done();
       })
     })
 
     it('should allow the defined attestor to attest to the loan', function(done) {
-      loan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE', { from: web3.eth.accounts[1], gas: 1000000 }, function(err, result) {
+      loan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE', { from: ACCOUNTS[1], gas: 1000000 }, function(err, result) {
         if (err) done(err);
         else {
           loan.getAttestation(function(err, attestation) {
@@ -92,7 +108,7 @@ describe('Loan', function() {
     })
 
     it('should not allow anyone to attest with an invalid IPFS multihash', function(done) {
-      loan.attest('abcdefgh', { from: web3.eth.accounts[1] }, function(err, result) {
+      loan.attest('abcdefgh', { from: ACCOUNTS[1] }, function(err, result) {
         if (!err) done("should return error")
         else done();
       })
@@ -102,32 +118,42 @@ describe('Loan', function() {
   describe('#fund', function() {
     it("should let user fund a loan", function(done) {
       const amount = 100;
-      const funder = web3.eth.accounts[2];
+      const funder = ACCOUNTS[2];
       loan.fund(amount, funder, function(err, txHash) {
         if (err) done(err);
-        expect(loan.balanceOf(funder).equals(web3.toBigNumber(amount))).to.be(true);
-        expect(loan.amountFunded().equals(web3.toBigNumber(amount))).to.be(true);
-        done();
+        loan.balanceOf(funder, function(err, balance) {
+          expect(balance.equals(amount)).to.be(true);
+          loan.amountFunded(function(err, amountFunded) {
+            expect(amountFunded.equals(amount)).to.be(true);
+            done();
+          })
+        })
       })
     })
 
     it("should let a user fund a loan specifying a different token recipient", function(done) {
       const amount = 800;
       const total = 900;
-      const tokenRecipient = web3.eth.accounts[3];
-      const funder = web3.eth.accounts[2];
+      const tokenRecipient = ACCOUNTS[3];
+      const funder = ACCOUNTS[2];
       loan.fund(amount, tokenRecipient, { from: funder }, function(err, txHash) {
         if (err) done(err);
-        expect(loan.balanceOf(tokenRecipient).equals(amount)).to.be(true);
-        expect(loan.amountFunded().equals(total)).to.be(true);
-        done();
+        else {
+          loan.balanceOf(tokenRecipient, function(err, balance) {
+            expect(balance.equals(amount)).to.be(true);
+            loan.amountFunded(function(err, amount) {
+              expect(amount.equals(total)).to.be(true);
+              done();
+            })
+          })
+        }
       });
     })
 
     it("should not let a user fund a loan specifying a malformed token recipient address", function(done) {
       const amount = 800;
       const tokenRecipient = 'abcdex123';
-      const funder = web3.eth.accounts[2];
+      const funder = ACCOUNTS[2];
       loan.fund(amount, tokenRecipient, { from: funder }, function(err, txHash) {
         if (!err) done('should return error');
         else done();
@@ -136,11 +162,11 @@ describe('Loan', function() {
 
     it("should transfer the balance to a user when the loan's fully funded", function(done) {
       const amount = 200;
-      const funder = web3.eth.accounts[2];
-      const borrowerBalanceBefore = web3.eth.getBalance(web3.eth.accounts[0]);
+      const funder = ACCOUNTS[2];
+      const borrowerBalanceBefore = web3.eth.getBalance(ACCOUNTS[0]);
       loan.fund(amount, funder, { from: funder }, function(err, txHash) {
         if (err) done(err);
-        const borrowerBalanceAfter = web3.eth.getBalance(web3.eth.accounts[0]);
+        const borrowerBalanceAfter = web3.eth.getBalance(ACCOUNTS[0]);
         expect(borrowerBalanceAfter.sub(borrowerBalanceBefore).equals(terms.principal)).to.be(true);
         done();
       })
@@ -148,14 +174,15 @@ describe('Loan', function() {
   })
 
   describe("#repay()", function(done) {
-    let uuid = web3.sha3(uuidV4());
-    let loan = new Loan(web3, uuid, terms);
+    let unfundedLoan;
 
     before(function(done) {
-      loan.broadcast(function(err, txHash) {
+      const unfundedLoanUuid = web3.sha3(uuidV4());
+      unfundedLoan = new Loan(web3, unfundedLoanUuid, terms)
+      unfundedLoan.broadcast(function(err, txHash) {
         if (err) done(err)
-        loan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE',
-          { from: web3.eth.accounts[1], gas: 500000 }, function(err, result) {
+        unfundedLoan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE',
+          { from: ACCOUNTS[1], gas: 500000 }, function(err, result) {
           if (err) done(err);
           else done();
         })
@@ -163,23 +190,134 @@ describe('Loan', function() {
     })
 
     it("should not let a user make a repayment before the loan is fully funded", function(done) {
-      loan.repay(100, { from: web3.eth.accounts[0] }, function(err, result) {
+      unfundedLoan.repay(100, { from: ACCOUNTS[0] }, function(err, result) {
         if (!err) done("should return error");
         else done();
       })
     })
 
     it("should let a user make a repayment once the loan's fully funded", function(done) {
-      loan.fund(1000, web3.eth.accounts[3], { from: web3.eth.accounts[3] }, function(err, result) {
+      loan.repay(100, { from: ACCOUNTS[0] }, function(err, result) {
         if (err) done(err)
-        loan.repay(100, { from: web3.eth.accounts[0] }, function(err, result) {
-          if (err) done(err)
+        else {
+          expect(loan.getRedeemableValue().equals(100)).to.be(true);
+          done();
+        }
+      })
+    });
+  })
+
+  describe('#withdrawInvestment()', function() {
+    let unpopularLoanUuid;
+    let unpopularLoan;
+    const investmentAmount = 800;
+
+    before(function(done) {
+      unpopularLoanUuid = web3.sha3(uuidV4());
+      unpopularLoan = new Loan(web3, unpopularLoanUuid, terms);
+      unpopularLoan.broadcast(function(err, txHash) {
+        if (err) done(err)
+        unpopularLoan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE',
+          { from: ACCOUNTS[1], gas: 500000 }, function(err, result) {
+          if (err) done(err);
+          unpopularLoan.fund(investmentAmount, ACCOUNTS[2], { from: ACCOUNTS[2] }, function(err, result) {
+            if(err) done(err);
+            else done();
+          })
+        })
+      })
+    })
+
+    it("should not allow an investor to withdraw their investment if the " +
+        "timelock period has not yet lapsed", function(done) {
+      unpopularLoan.withdrawInvestment({ from: ACCOUNTS[2] }, function(err, result) {
+        if (!err) done("should return error");
+        else done();
+      })
+    })
+
+    it("should allow an investor to withdraw their investment if timelock " +
+        "period has lapsed.", function(done) {
+      util.setTimeForward(2 * 60 * 60, function(err, result) {
+        if (err) done(err);
+        const balanceBefore = web3.eth.getBalance(ACCOUNTS[1])
+        unpopularLoan.withdrawInvestment({ from: ACCOUNTS[2] }, function(err, result) {
+          if (err) done(err);
           else {
-            expect(loan.getRedeemableValue().equals(100)).to.be(true);
+            const balanceAfter = web3.eth.getBalance(ACCOUNTS[2])
+            const gasCosts = util.getGasCosts(result);
+            expect(balanceAfter.sub(balanceBefore).plus(gasCosts).equals(investmentAmount)).to.be(true);
             done();
           }
         })
       })
     })
   })
+
+  describe("#redeemValue()", function() {
+    let repaidLoanUuid;
+    let repaidLoan;
+    const amountRepaid = 1000;
+
+    before(function(done) {
+      repaidLoanUuid = web3.sha3(uuidV4());
+      repaidLoan = new Loan(web3, repaidLoanUuid, terms);
+      repaidLoan.broadcast(function(err, txHash) {
+        if (err) done(err)
+        repaidLoan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE',
+          { from: ACCOUNTS[1], gas: 500000 }, function(err, result) {
+          if (err) done(err);
+          repaidLoan.fund(800, ACCOUNTS[2], { from: ACCOUNTS[2] }, function(err, result) {
+            if(err) done(err);
+            else done();
+          })
+        })
+      })
+    })
+
+    it("should not allow an investor to redeem value repaid to the loan " +
+        "before the loan is fully funded and principal has been transferred " +
+        "to the borrower", function(done) {
+      repaidLoan.redeemValue({ from: ACCOUNTS[2] }, function(err, result) {
+        if (!err) done("should return error");
+        else done();
+      })
+    })
+
+    it("should allow an investor to redeem repaid value after the loan is " +
+        "funded and the loan principal has been transferrred to the borrower", function(done) {
+      repaidLoan.fund(200, ACCOUNTS[3], { from: ACCOUNTS[3] }, function(err, result) {
+        if (err) done(err)
+        repaidLoan.repay(1000, function(err, result) {
+          if (err) done(err)
+          const balanceBefore = web3.eth.getBalance(ACCOUNTS[2])
+          repaidLoan.redeemValue(ACCOUNTS[2], { from: ACCOUNTS[2] }, function(err, result) {
+            if (err) done(err);
+
+            const balanceAfter = web3.eth.getBalance(ACCOUNTS[2]);
+            const gasCosts = util.getGasCosts(result);
+            expect(balanceAfter.minus(balanceBefore).plus(gasCosts).equals(800)).to.be(true);
+            done();
+          })
+        })
+      })
+    })
+
+    it("should not allow a non-investor to redeem repaid value", function(done) {
+      repaidLoan.redeemValue(ACCOUNTS[5], { from: ACCOUNTS[5] }, function(err, result) {
+        if (!err) done("should return error");
+        else done();
+      })
+    })
+
+    describe("#getBalanceRepaid()", function() {
+      it("should allow anyone to get the amount repaid to a given loan", function(done) {
+        repaidLoan.getBalanceRepaid(function(err, result) {
+          if (err) done(err);
+          expect(result).to.be(amountRepaid);
+          done();
+        })
+      })
+    });
+  });
 })

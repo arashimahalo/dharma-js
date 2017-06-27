@@ -66,7 +66,7 @@ contract Loan {
 
     loans[uuid].borrower = _borrower;
     loans[uuid].token.totalSupply = _principal;
-    loans[uuid].attestation.attestor = _attestor;
+    loans[uuid].attestation.setAttestor(_attestor);
     loans[uuid].timelock.timeLock = _fundingPeriodTimeLock;
     loans[uuid].periodType = _periodType;
     loans[uuid].periodLength = _periodLength;
