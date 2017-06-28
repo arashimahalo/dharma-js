@@ -435,7 +435,6 @@ describe('Loan', function() {
         }
       })
 
-      const prevBalance = web3.eth.getBalance(ACCOUNTS[2]);
       loanOfInterest.redeemValue(ACCOUNTS[2], { from: ACCOUNTS[2] }, function(err, result) {
         if (err) done(err);
       })
