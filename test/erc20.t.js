@@ -103,4 +103,46 @@ describe('ERC20', function() {
       })
     })
   })
+
+  describe('#events', function() {
+    it('should callback on Transfer event', function(done) {
+      const value = 300;
+      const transferEvent = loan.events.transfer();
+      transferEvent.watch(function(err, obj) {
+        if (err) done(err);
+        else {
+          expect(obj.args._uuid).to.be(uuid)
+          expect(obj.args._from).to.be(ACCOUNTS[2])
+          expect(obj.args._to).to.be(ACCOUNTS[3])
+          expect(obj.args._value.equals(value)).to.be(true)
+          transferEvent.stopWatching();
+          done();
+        }
+      })
+
+      loan.transfer(ACCOUNTS[3], value, { from: ACCOUNTS[2] }, function(err, result) {
+        if (err) done(err);
+      })
+    })
+
+    it('should callback on Approval event', function(done) {
+      const value = 300;
+      const approvalEvent = loan.events.approval();
+      approvalEvent.watch(function(err, obj) {
+        if (err) done(err);
+        else {
+          expect(obj.args._uuid).to.be(uuid)
+          expect(obj.args._owner).to.be(ACCOUNTS[2])
+          expect(obj.args._spender).to.be(ACCOUNTS[5])
+          expect(obj.args._value.equals(value)).to.be(true)
+          approvalEvent.stopWatching();
+          done();
+        }
+      })
+
+      loan.approve(ACCOUNTS[5], value, { from: ACCOUNTS[2] }, function(err, result) {
+        if (err) done(err);
+      })
+    })
+  })
 })
