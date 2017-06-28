@@ -27,9 +27,10 @@ contract Loan {
   event Investment(bytes32 indexed _uuid, address indexed _from, uint _value, uint _timestamp);
   event LoanTermBegin(bytes32 indexed _uuid, address indexed _borrower, uint _timestamp);
   event LoanCreated(bytes32 indexed _uuid, address _borrower, address indexed _attestor, uint _timestamp);
-  event Transfer(bytes32 indexed _uuid, address from, address indexed to, uint value);
-  event Approval(bytes32 indexed _uuid, address indexed owner, address spender, uint value);
-  event InvestmentRedeemed(bytes32 indexed _uuid, address indexed _to, uint _value, uint _timestamp);
+  event Transfer(bytes32 indexed _uuid, address _from, address indexed _to, uint _value, uint _timestamp);
+  event Approval(bytes32 indexed _uuid, address indexed _owner, address _spender, uint _value, uint _timestamp);
+  event InvestmentRedeemed(bytes32 indexed _uuid,
+      address indexed _investor, address indexed _recipient, uint _value, uint _timestamp);
   event Attested(bytes32 indexed _uuid, address indexed _attestor, uint256 _timestamp);
 
   mapping (bytes32 => LoanLib.Loan) loans;

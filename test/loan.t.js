@@ -313,4 +313,132 @@ describe('Loan', function() {
       })
     })
   });
+
+  describe('#events', function() {
+    this.timeout(10000)
+
+    let loanOfInterest;
+    let uuidOfInterest;
+
+    before(function(done) {
+      uuidOfInterest = web3.sha3(uuidV4());
+      loanOfInterest = new Loan(web3, uuidOfInterest, terms);
+      done();
+    });
+
+    it("should callback on LoanCreated event", function(done) {
+      const createdEvent = loanOfInterest.events.created();
+      createdEvent.watch(function(err, obj) {
+        if (err) done(err);
+        else {
+          expect(obj.args._uuid).to.be(uuidOfInterest)
+          expect(obj.args._borrower).to.be(terms.borrower)
+          expect(obj.args._attestor).to.be(terms.attestor)
+          createdEvent.stopWatching()
+          done();
+        }
+      })
+
+      loanOfInterest.broadcast(function(err, result) {
+        if (err) done(err);
+      })
+    })
+
+    it("should callback on Attested event", function(done) {
+      const attestedEvent = loanOfInterest.events.attested();
+      attestedEvent.watch(function(err, obj) {
+        if (err) done(err);
+        else {
+          expect(obj.args._uuid).to.be(uuidOfInterest);
+          expect(obj.args._attestor).to.be(terms.attestor);
+          attestedEvent.stopWatching();
+          done();
+        }
+      })
+
+      loanOfInterest.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE',
+        { from: ACCOUNTS[1], gas: 1000000 }, function(err, result) {
+        if (err) done(err);
+      })
+    })
+
+    it("should callback on Investment event", function(done) {
+      let amount = 200;
+
+      const investmentEvent = loanOfInterest.events.investment();
+      investmentEvent.watch(function(err, obj) {
+        if (err) done(err);
+        else {
+          expect(obj.args._uuid).to.be(uuidOfInterest);
+          expect(obj.args._from).to.be(ACCOUNTS[2]);
+          expect(obj.args._value.equals(amount)).to.be(true);
+          investmentEvent.stopWatching();
+          done();
+        }
+      })
+
+      loanOfInterest.fund(amount, ACCOUNTS[2], function(err, result) {
+        if (err) done(err);
+      })
+    })
+
+    it("should callback on LoanTermBegin event", function(done) {
+      let amount = 800;
+
+      const termBeginEvent = loanOfInterest.events.termBegin();
+      termBeginEvent.watch(function(err, obj) {
+        if (err) done(err);
+        else {
+          expect(obj.args._uuid).to.be(uuidOfInterest);
+          expect(obj.args._borrower).to.be(terms.borrower);
+          termBeginEvent.stopWatching();
+          done();
+        }
+      })
+
+      loanOfInterest.fund(amount, ACCOUNTS[2], function(err, result) {
+        if (err) done(err);
+      })
+    })
+
+    it("should callback on PeriodicRepayment event", function(done) {
+      const amount = 200;
+      const repaymentEvent = loanOfInterest.events.repayment();
+      repaymentEvent.watch(function(err, obj) {
+        if (err) done(err);
+        else {
+          expect(obj.args._uuid).to.be(uuidOfInterest);
+          expect(obj.args._from).to.be(terms.borrower);
+          expect(obj.args._value.equals(amount)).to.be(true);
+          repaymentEvent.stopWatching();
+          done();
+        }
+      })
+
+      loanOfInterest.repay(amount, function(err, result) {
+        if (err) done(err);
+      })
+    })
+
+    it("should callback on InvestmentRedeemed event", function(done) {
+      const amount = 200;
+      const investmentRedeemedEvent = loanOfInterest.events.investmentRedeemed();
+      investmentRedeemedEvent.watch(function(err, obj) {
+        if (err) done(err);
+        else {
+          expect(obj.args._uuid).to.be(uuidOfInterest);
+          expect(obj.args._investor).to.be(ACCOUNTS[2]);
+          expect(obj.args._recipient).to.be(ACCOUNTS[2])
+          expect(obj.args._value.equals(amount)).to.be(true);
+          investmentRedeemedEvent.stopWatching();
+          done();
+        }
+      })
+
+      const prevBalance = web3.eth.getBalance(ACCOUNTS[2]);
+      loanOfInterest.redeemValue(ACCOUNTS[2], { from: ACCOUNTS[2] }, function(err, result) {
+        if (err) done(err);
+      })
+    })
+  })
 })
