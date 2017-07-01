@@ -16,6 +16,7 @@
     "design-pattern": "0.0.21",
     "is-ipfs": "^0.3.0",
     "json-stable-stringify": "^1.0.1",
+    "request-promise": "^4.2.1",
     "uuid": "^3.1.0"
   },
   "devDependencies": {

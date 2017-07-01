@@ -52,124 +52,124 @@ describe('Loans', function() {
       loan = loans.create(terms);
     })
 
-    it('should callback when LoanCreated with query', function(done) {
-      let borrowerCreatedLoanEvent = loans.events.created({ _borrower: ACCOUNTS[0] });
-      borrowerCreatedLoanEvent.watch(function(err, obj) {
-        if (err) done(err);
-        else {
-          borrowerCreatedLoanEvent.stopWatching();
-          done();
-        }
-      })
+    it('should callback when LoanCreated with query', async function() {
+      return new Promise(async function(accept, reject) {
+        let borrowerCreatedLoanEvent = await loans.events.created({ _borrower: ACCOUNTS[0] });
+        borrowerCreatedLoanEvent.watch(function(err, obj) {
+          if (err) reject(err);
+          else {
+            borrowerCreatedLoanEvent.stopWatching();
+            accept();
+          }
+        })
 
-      loan.broadcast(function(err, result) {
-        if (err) done(err);
+        await loan.broadcast();
       });
     })
 
-    it('should callback when Attested with query', function(done) {
-      const attestedEvent = loans.events.attested({ _attestor: ACCOUNTS[1] });
-      attestedEvent.watch(function(err, obj) {
-        if (err) done(err)
-        else {
-          attestedEvent.stopWatching();
-          done();
-        }
-      })
+    it('should callback when Attested with query', async function() {
+      return new Promise(async function(accept, reject) {
+        const attestedEvent = await loans.events.attested({ _attestor: ACCOUNTS[1] });
+        attestedEvent.watch(function(err, obj) {
+          if (err) reject(err)
+          else {
+            attestedEvent.stopWatching();
+            accept();
+          }
+        })
 
-      loan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE',
-        { from: ACCOUNTS[1], gas: 1000000 }, function(err, result) {
-        if (err) done(err);
-      })
-    })
-
-    it('should callback when Investment with query', function(done) {
-      const investmentEvent = loans.events.investment({ _investor: ACCOUNTS[2] });
-      investmentEvent.watch(function(err, obj) {
-        if (err) done(err)
-        else {
-          investmentEvent.stopWatching();
-          done();
-        }
-      })
-
-      loan.fund(200, ACCOUNTS[2], function(err, result) {
-        if (err) done(err);
-      })
-    })
-
-    it('should callback when LoanTermBegin with query', function(done) {
-      const termBeginEvent = loans.events.termBegin({ _borrower: ACCOUNTS[0] });
-      termBeginEvent.watch(function(err, obj) {
-        if (err) done(err)
-        else {
-          termBeginEvent.stopWatching();
-          done();
-        }
-      })
-
-      loan.fund(800, ACCOUNTS[2], function(err, result) {
-        if (err) done(err);
-      })
-    })
-
-    it('should callback when PeriodicRepayment with query', function(done) {
-      const repaymentEvent = loans.events.repayment({ _borrower: ACCOUNTS[0] });
-      repaymentEvent.watch(function(err, obj) {
-        if (err) done(err)
-        else {
-          repaymentEvent.stopWatching();
-          done();
-        }
-      })
-
-      loan.repay(800, function(err, result) {
-        if (err) done(err);
-      })
-    })
-
-    it('should callback when InvestmentRedeemed with query', function(done) {
-      const investmentRedeemedEvent = loans.events.investmentRedeemed({ _recipient: ACCOUNTS[2] });
-      investmentRedeemedEvent.watch(function(err, obj) {
-        if (err) done(err)
-        else {
-          investmentRedeemedEvent.stopWatching();
-          done();
-        }
-      })
-
-      loan.redeemValue(ACCOUNTS[2], { from: ACCOUNTS[2] }, function(err, result) {
-        if (err) done(err);
-      })
-    })
-
-    it('should callback when Transfer with query', function(done) {
-      const transferEvent = loans.events.transfer({ _to: ACCOUNTS[3] });
-      transferEvent.watch(function(err, obj) {
-        if (err) done(err)
-        else {
-          transferEvent.stopWatching();
-          done();
-        }
-      })
-
-      loan.transfer(ACCOUNTS[3], 100, { from: ACCOUNTS[2] }, function(err, result) {
-        if (err) done(err);
+        await loan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE',
+          { from: ACCOUNTS[1], gas: 1000000 });
       });
     })
 
-    it('should callback when Approve with query', function(done) {
-      const approveEvent = loans.events.approval({ _spender: ACCOUNTS[4] });
-      approveEvent.watch(function(err, obj) {
-        if (err) done(err)
-        else {
-          approveEvent.stopWatching();
-          done();
-        }
-      })
+    it('should callback when Investment with query', async function() {
+      return new Promise(async function(accept, reject) {
+        const investmentEvent = await loans.events.investment({ _investor: ACCOUNTS[2] });
+        investmentEvent.watch(function(err, obj) {
+          if (err) reject(err)
+          else {
+            investmentEvent.stopWatching();
+            accept();
+          }
+        })
 
-      loan.approve(ACCOUNTS[4], 100, { from: ACCOUNTS[2] }, function(err, result) {
-        if (err) done(err)
+        await loan.fund(200, ACCOUNTS[2]);
+      });
+    })
+
+    it('should callback when LoanTermBegin with query', async function() {
+      return new Promise(async function(accept, reject) {
+        const termBeginEvent = await loans.events.termBegin({ _borrower: ACCOUNTS[0] });
+        termBeginEvent.watch(function(err, obj) {
+          if (err) reject(err)
+          else {
+            termBeginEvent.stopWatching();
+            accept();
+          }
+        })
+
+        await loan.fund(800, ACCOUNTS[2]);
+      });
+    })
+
+    it('should callback when PeriodicRepayment with query', async function() {
+      return new Promise(async function(accept, reject) {
+        const repaymentEvent = await loans.events.repayment({ _borrower: ACCOUNTS[0] });
+        repaymentEvent.watch(function(err, obj) {
+          if (err) reject(err)
+          else {
+            repaymentEvent.stopWatching();
+            accept();
+          }
+        })
+
+        await loan.repay(800);
+      });
+    })
+
+    it('should callback when InvestmentRedeemed with query', async function() {
+      return new Promise(async function(accept, reject) {
+        const investmentRedeemedEvent = await loans.events.investmentRedeemed({ _recipient: ACCOUNTS[2] });
+        investmentRedeemedEvent.watch(function(err, obj) {
+          if (err) reject(err)
+          else {
+            investmentRedeemedEvent.stopWatching();
+            accept();
+          }
+        })
+
+        await loan.redeemValue(ACCOUNTS[2], { from: ACCOUNTS[2] });
+      });
+    })
+
+    it('should callback when Transfer with query', async function() {
+      return new Promise(async function(accept, reject) {
+        const transferEvent = await loans.events.transfer({ _to: ACCOUNTS[3] });
+        transferEvent.watch(function(err, obj) {
+          if (err) reject(err)
+          else {
+            transferEvent.stopWatching();
+            accept();
+          }
+        })
+
+        await loan.transfer(ACCOUNTS[3], 100, { from: ACCOUNTS[2] });
+      });
+    })
+
+    it('should callback when Approve with query', async function() {
+      return new Promise(async function(accept, reject) {
+        const approveEvent = await loans.events.approval({ _spender: ACCOUNTS[4] });
+        approveEvent.watch(function(err, obj) {
+          if (err) reject(err)
+          else {
+            approveEvent.stopWatching();
+            accept();
+          }
+        })
+
+        await loan.approve(ACCOUNTS[4], 100, { from: ACCOUNTS[2] });
       });
     })
   })
