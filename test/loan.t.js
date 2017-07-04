@@ -5,7 +5,7 @@ import expect from 'expect.js';
 import uuidV4 from 'uuid/v4';
 import {web3, util} from './init.js';
 import _ from 'lodash';
-import {LoanDataUnsigned, LoanDataMalformed} from './util/TestLoans.js';
+import TestLoans from './util/TestLoans.js';
 import {generateTestBids} from './util/BidUtils';
 
 describe('Loan', () => {
@@ -19,8 +19,8 @@ describe('Loan', () => {
     let signedLoanData;
 
     before(() => {
-       unsignedLoanData = LoanDataUnsigned(ACCOUNTS);
-       malformedLoanData = LoanDataMalformed(ACCOUNTS);
+       unsignedLoanData = TestLoans.LoanDataUnsigned(ACCOUNTS);
+       malformedLoanData = TestLoans.LoanDataMalformed(ACCOUNTS);
     })
 
     it('should instantiate w/o throwing w/ valid unsigned loan data', async () => {
@@ -38,7 +38,7 @@ describe('Loan', () => {
 
     it('should throw when instantiated with malformed loan data', async () => {
       try {
-        await Loan.create(web3, LoanDataMalformed(ACCOUNTS))
+        await Loan.create(web3, TestLoans.LoanDataMalformed(ACCOUNTS))
         expect().fail('should throw error')
       } catch (err) {
         expect(err.toString()).to.contain("is not a valid");
@@ -177,6 +177,83 @@ describe('Loan', () => {
       const balanceDelta = balanceAfter.minus(balanceBefore).plus(gasCosts);
 
       expect(balanceDelta.equals(loan.principal)).to.be(true);
+    })
+  })
+
+  describe('#withdrawInvestment()', () => {
+    let withdrawTestLoan;
+
+    describe('auction state', () => {
+      before(async () => {
+        withdrawTestLoan = await TestLoans.LoanInAuctionState(ACCOUNTS);
+        await withdrawTestLoan.bid(
+          web3.toWei(0.1, 'ether'),
+          ACCOUNTS[2],
+          web3.toWei(0.1, 'ether'),
+          { from: ACCOUNTS[2] }
+        )
+      })
+
+      it('should throw when bidder tries to withdraw', async () => {
+        try {
+          await withdrawTestLoan.withdrawInvestment({ from: ACCOUNTS[2] })
+          expect().fail('should throw error')
+        } catch (err) {
+          expect(err.toString())
+            .to.contain('cannot be withdrawn during the auction period.');
+        }
+      })
+    })
+
+    describe('review state', () => {
+      before(async () => {
+        withdrawTestLoan = await TestLoans.LoanInReviewState(ACCOUNTS);
+      })
+
+      it('should throw when bidder tries to withdraw and review period has not lapsed', async () => {
+        try {
+          await withdrawTestLoan.withdrawInvestment({ from: ACCOUNTS[2] })
+          expect().fail('should throw error')
+        } catch (err) {
+          expect(err.toString())
+            .to.contain('cannot be withdrawn during the review period.');
+        }
+      })
+
+      it("should let bidders withdraw the entirety of their bids when review" +
+          " period has lapsed w/o borrower action", async () => {
+        await util.setBlockNumberForward(40);
+        const balanceBefore = web3.eth.getBalance(ACCOUNTS[2]);
+        await withdrawTestLoan.withdrawInvestment({ from: ACCOUNTS[2] })
+        const balanceAfter = web3.eth.getBalance(ACCOUNTS[2]);
+        expect(balanceAfter).to.be.greaterThan(balanceBefore);
+      })
+    })
+
+    describe('accepted state', () => {
+      before(async () => {
+        withdrawTestLoan = await TestLoans.LoanInAcceptedState(ACCOUNTS);
+      })
+
+      it('should let bidder withdraw the remainders of the bid', async () => {
+        const balanceBefore = web3.eth.getBalance(ACCOUNTS[2]);
+        await withdrawTestLoan.withdrawInvestment({ from: ACCOUNTS[2] })
+        const balanceAfter = web3.eth.getBalance(ACCOUNTS[2]);
+        expect(balanceAfter).to.be.greaterThan(balanceBefore);
+      })
+    })
+
+    describe('rejected state', () => {
+      before(async () => {
+        withdrawTestLoan = await TestLoans.LoanInRejectedState(ACCOUNTS);
+      })
+
+      it('should let bidder withdraw the remainders of the bid', async () => {
+        const balanceBefore = web3.eth.getBalance(ACCOUNTS[2]);
+        await withdrawTestLoan.withdrawInvestment({ from: ACCOUNTS[2] })
+        const balanceAfter = web3.eth.getBalance(ACCOUNTS[2]);
+        expect(balanceAfter).to.be.greaterThan(balanceBefore);
+      })
     })
   })
 
