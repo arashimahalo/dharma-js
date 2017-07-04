@@ -6,6 +6,8 @@ import uuidV4 from 'uuid/v4';
 import {web3, util} from './init.js';
 import _ from 'lodash';
 import TestLoans from './util/TestLoans.js';
+import {LoanCreated, LoanTermBegin, LoanBidsRejected, PeriodicRepayment,
+          ValueRedeemed} from './util/LoanEvents';
 import {generateTestBids} from './util/BidUtils';
 
 describe('Loan', () => {
@@ -325,98 +327,35 @@ describe('Loan', () => {
     });
   })
 
-  describe('#withdrawInvestment()', function() {
-    let unpopularLoanUuid;
-    let unpopularLoan;
-    const investmentAmount = 800;
-
-    before(async function() {
-      try {
-        unpopularLoanUuid = web3.sha3(uuidV4());
-        unpopularLoan = new Loan(web3, unpopularLoanUuid, terms);
-        await unpopularLoan.broadcast()
-        await unpopularLoan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE',
-          { from: ACCOUNTS[1], gas: 500000 });
-        await unpopularLoan.fund(investmentAmount, ACCOUNTS[2], { from: ACCOUNTS[2] });
-      } catch (err) {
-        expect().fail(err);
-      }
-    })
-
-    it("should not allow an investor to withdraw their investment if the " +
-        "timelock period has not yet lapsed", async function() {
-      try {
-        await unpopularLoan.withdrawInvestment({ from: ACCOUNTS[2] });
-        expect().fail("should throw error");
-      } catch (err) {
-        util.assertThrowMessage(err);
-      }
-    })
-
-    it("should allow an investor to withdraw their investment if timelock " +
-        "period has lapsed.", async function() {
-      try {
-        await util.setTimeForward(2 * 60 * 60);
-        const balanceBefore = web3.eth.getBalance(ACCOUNTS[2])
-        const result = await unpopularLoan.withdrawInvestment({ from: ACCOUNTS[2] });
-        const gasCosts = await util.getGasCosts(result.tx);
-        const balanceAfter = web3.eth.getBalance(ACCOUNTS[2]);
-        expect(balanceAfter.sub(balanceBefore).plus(gasCosts).equals(investmentAmount)).to.be(true);
-      } catch (err) {
-        expect().fail(err);
-      }
-    })
-  })
-
   describe("#redeemValue()", function() {
-    let repaidLoanUuid;
-    let repaidLoan;
-    const amountRepaid = 1000;
-
-    before(async function() {
+    it("should not allow an investor to redeem value before loan term begins", async function() {
+      const loanInReview = await TestLoans.LoanInReviewState(ACCOUNTS);
       try {
-        repaidLoanUuid = web3.sha3(uuidV4());
-        repaidLoan = new Loan(web3, repaidLoanUuid, terms);
-
-        await repaidLoan.broadcast()
-        await repaidLoan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE',
-          { from: ACCOUNTS[1], gas: 500000 });
-        await repaidLoan.fund(800, ACCOUNTS[2], { from: ACCOUNTS[2] });
-      } catch (err) {
-        expect().fail(err);
-      }
-    })
-
-    it("should not allow an investor to redeem value repaid to the loan " +
-        "before the loan is fully funded and principal has been transferred " +
-        "to the borrower", async function() {
-      try {
-        await repaidLoan.redeemValue(ACCOUNTS[2], { from: ACCOUNTS[2] });
+        await loanInReview.redeemValue(ACCOUNTS[2], { from: ACCOUNTS[2] });
         expect().fail("should throw error");
       } catch (err) {
         util.assertThrowMessage(err);
       }
     })
 
-    it("should allow an investor to redeem repaid value after the loan is " +
-        "funded and the loan principal has been transferrred to the borrower", async function() {
-      try {
-        await repaidLoan.fund(200, ACCOUNTS[3], { from: ACCOUNTS[3] });
-        await repaidLoan.repay(1000);
-        const balanceBefore = web3.eth.getBalance(ACCOUNTS[2])
-        const result = await repaidLoan.redeemValue(ACCOUNTS[2],
-          { from: ACCOUNTS[2] });
-        const balanceAfter = web3.eth.getBalance(ACCOUNTS[2]);
-        const gasCosts = await util.getGasCosts(result.tx);
-        expect(balanceAfter.minus(balanceBefore).plus(gasCosts).equals(800)).to.be(true);
-      } catch (err) {
-        expect().fail(err);
-      }
-    })
+    it("should allow an investor to redeem repaid value after the loan term begins", async function() {
+      const redeemableValue = await loan.getRedeemableValue(ACCOUNTS[2]);
+
+      const balanceBefore = web3.eth.getBalance(ACCOUNTS[2])
+      const result = await loan.redeemValue(ACCOUNTS[2],
+        { from: ACCOUNTS[2] });
+      const balanceAfter = web3.eth.getBalance(ACCOUNTS[2]);
+      const gasCosts = await util.getGasCosts(result.tx);
+      expect(balanceAfter
+              .minus(balanceBefore)
+              .plus(gasCosts)
+              .equals(redeemableValue))
+              .to.be(true);
+    });
 
     it("should not allow a non-investor to redeem repaid value", async function() {
       try {
-        await repaidLoan.redeemValue(ACCOUNTS[5], { from: ACCOUNTS[5] });
+        await loan.redeemValue(ACCOUNTS[2], { from: ACCOUNTS[14] });
         expect().fail("should throw error");
       } catch (err) {
         util.assertThrowMessage(err)
@@ -428,145 +367,106 @@ describe('Loan', () => {
     this.timeout(10000)
 
     let loanOfInterest;
-    let uuidOfInterest;
 
     before(async function() {
-      uuidOfInterest = web3.sha3(uuidV4());
-      loanOfInterest = new Loan(web3, uuidOfInterest, terms);
+      loanOfInterest = await Loan.create(web3, TestLoans.LoanDataUnsigned(ACCOUNTS));
+      await loanOfInterest.signAttestation();
     });
 
     it("should callback on LoanCreated event", async function() {
-      return new Promise(async function(accept, reject) {
-        try {
-          const createdEvent = await loanOfInterest.events.created();
-          createdEvent.watch(function(err, obj) {
-            if (err) reject(err)
-            expect(obj.args._uuid).to.be(uuidOfInterest)
-            expect(obj.args._borrower).to.be(terms.borrower)
-            expect(obj.args._attestor).to.be(terms.attestor)
-            createdEvent.stopWatching()
-            accept()
-          })
-
-          await loanOfInterest.broadcast()
-        } catch (err) {
-          reject(err);
-        }
+      const blockNumber = await util.getLatestBlockNumber(web3);
+      const loanCreatedEvent = await loanOfInterest.events.created();
+      loanCreatedEvent.watch(function(err, result) {
+        util.assertEventEquality(result, LoanCreated({
+          uuid: loanOfInterest.uuid,
+          borrower: loanOfInterest.borrower,
+          attestor: loanOfInterest.attestor,
+          blockNumber: blockNumber + 1
+        }))
+        loanCreatedEvent.stopWatching();
       })
-    })
 
-    it("should callback on Attested event", async function() {
-      return new Promise(async function(accept, reject) {
-        try {
-          const attestedEvent = await loanOfInterest.events.attested();
-          attestedEvent.watch(function(err, obj) {
-            if (err) reject(err);
-            else {
-              expect(obj.args._uuid).to.be(uuidOfInterest);
-              expect(obj.args._attestor).to.be(terms.attestor);
-              attestedEvent.stopWatching();
-              accept();
-            }
-          });
-
-          await loanOfInterest.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE',
-            { from: ACCOUNTS[1], gas: 1000000 });
-        } catch (err) {
-          reject(err);
-        }
-      });
-    })
-
-    it("should callback on Investment event", async function() {
-      let amount = 200;
-      return new Promise(async function(accept, reject) {
-        try {
-          const investmentEvent = await loanOfInterest.events.investment();
-          investmentEvent.watch(function(err, obj) {
-            if (err) reject(err);
-            else {
-              expect(obj.args._uuid).to.be(uuidOfInterest);
-              expect(obj.args._from).to.be(ACCOUNTS[2]);
-              expect(obj.args._value.equals(amount)).to.be(true);
-              investmentEvent.stopWatching();
-              accept();
-            }
-          })
-
-          await loanOfInterest.fund(amount, ACCOUNTS[2]);
-        } catch (err) {
-          reject(err);
-        }
-      })
+      await loanOfInterest.broadcast();
     })
 
     it("should callback on LoanTermBegin event", async function() {
-      let amount = 800;
-      return new Promise(async function(accept, reject) {
-        try {
-          const termBeginEvent = await loanOfInterest.events.termBegin();
-          termBeginEvent.watch(function(err, obj) {
-            if (err) reject(err);
-            else {
-              expect(obj.args._uuid).to.be(uuidOfInterest);
-              expect(obj.args._borrower).to.be(terms.borrower);
-              termBeginEvent.stopWatching();
-              accept();
-            }
-          })
+      const loan = await TestLoans.LoanInReviewState(ACCOUNTS);
 
-          await loanOfInterest.fund(amount, ACCOUNTS[2]);
-        } catch (err) {
-          reject(err);
-        }
+      const blockNumber = await util.getLatestBlockNumber(web3);
+      const termBeginEvent = await loan.events.termBegin();
+      termBeginEvent.watch(function(err, result) {
+        util.assertEventEquality(result, LoanTermBegin({
+          uuid: loan.uuid,
+          borrower: loan.borrower,
+          blockNumber: blockNumber + 1
+        }))
+        termBeginEvent.stopWatching();
       })
+
+      await loan.acceptBids(ACCOUNTS.slice(2,7).map((account) => {
+        return {
+          bidder: account,
+          amount: web3.toWei(0.2002, 'ether')
+        }
+      }))
+    })
+
+    it("should callback on LoanBidsRejected event", async function() {
+      const loan = await TestLoans.LoanInReviewState(ACCOUNTS);
+
+      const blockNumber = await util.getLatestBlockNumber(web3);
+      const bidsRejectedEvent = await loan.events.bidsRejected();
+      bidsRejectedEvent.watch(function(err, result) {
+        util.assertEventEquality(result, LoanBidsRejected({
+          uuid: loan.uuid,
+          borrower: loan.borrower,
+          blockNumber: blockNumber + 1
+        }))
+        bidsRejectedEvent.stopWatching();
+      })
+
+      await loan.rejectBids();
     })
 
     it("should callback on PeriodicRepayment event", async function() {
-      const amount = 200;
-      return new Promise(async function(accept, reject) {
-        try {
-          const repaymentEvent = await loanOfInterest.events.repayment();
-          repaymentEvent.watch(function(err, obj) {
-            if (err) reject(err);
-            else {
-              expect(obj.args._uuid).to.be(uuidOfInterest);
-              expect(obj.args._from).to.be(terms.borrower);
-              expect(obj.args._value.equals(amount)).to.be(true);
-              repaymentEvent.stopWatching();
-              accept()
-            }
-          })
+      const loan = await TestLoans.LoanInAcceptedState(ACCOUNTS);
 
-          await loanOfInterest.repay(amount);
-        } catch (err) {
-          reject(err);
-        }
+      const repaymentAmount = web3.toWei(0.2, 'ether');
+      const blockNumber = await util.getLatestBlockNumber(web3);
+      const repaymentEvent = await loan.events.repayment();
+      repaymentEvent.watch(function(err, result) {
+        util.assertEventEquality(result, PeriodicRepayment({
+          uuid: loan.uuid,
+          from: loan.borrower,
+          value: repaymentAmount,
+          blockNumber: blockNumber + 1
+        }))
+        repaymentEvent.stopWatching();
       })
+
+      await loan.repay(repaymentAmount);
     })
 
-    it("should callback on InvestmentRedeemed event", async function() {
-      const amount = 200;
-      return new Promise(async function(accept, reject) {
-        try {
-          const investmentRedeemedEvent = await loanOfInterest.events.investmentRedeemed();
-          investmentRedeemedEvent.watch(function(err, obj) {
-            if (err) reject(err);
-            else {
-              expect(obj.args._uuid).to.be(uuidOfInterest);
-              expect(obj.args._investor).to.be(ACCOUNTS[2]);
-              expect(obj.args._recipient).to.be(ACCOUNTS[2])
-              expect(obj.args._value.equals(amount)).to.be(true);
-              investmentRedeemedEvent.stopWatching();
-              accept();
-            }
-          })
+    it("should callback on ValueRedeemed event", async function() {
+      const loan = await TestLoans.LoanInAcceptedState(ACCOUNTS);
+      await loan.repay(web3.toWei(0.3, 'ether'));
 
-          await loanOfInterest.redeemValue(ACCOUNTS[2], { from: ACCOUNTS[2] });
-        } catch (err) {
-          reject(err);
-        }
-      })
+      const redeemableValue = await loan.getRedeemableValue(ACCOUNTS[2]);
+
+      const blockNumber = await util.getLatestBlockNumber(web3);
+      const valueRedeemedEvent = await loanOfInterest.events.valueRedeemed();
+      valueRedeemedEvent.watch(function(err, result) {
+        util.assertEventEquality(result, ValueRedeemed({
+          uuid: loan.uuid,
+          investor: ACCOUNTS[2],
+          recipient: ACCOUNTS[2],
+          value: redeemableValue,
+          blockNumber: blockNumber + 1
+        }))
+        valueRedeemedEvent.stopWatching();
+      });
+
+      await loan.redeemValue(ACCOUNTS[2], { from: ACCOUNTS[2] })
     })
   })
 })

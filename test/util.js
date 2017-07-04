@@ -46,24 +46,42 @@ class Util {
   }
 
   getGasCosts(result) {
-      return new Promise(function(accept, reject) {
-        if ('tx' in result) {
-          accept(this.gasPrice.times(result.receipt.gasUsed));
-        } else {
-          this.web3.eth.getTransactionReceipt(txHash, function(err, tx) {
-            if (err) reject(err)
-            else {
-              const gasCost = this.gasPrice.times(tx.gasUsed);
-              accept(gasCost);
-            }
-          }.bind(this))
-        }
-      }.bind(this));
-    }
+    return new Promise(function(accept, reject) {
+      if (typeof result.tx !== 'undefined') {
+        accept(this.gasPrice.times(result.receipt.gasUsed));
+      } else {
+        this.web3.eth.getTransactionReceipt(result, function(err, tx) {
+          if (err) reject(err)
+          else {
+            const gasCost = this.gasPrice.times(tx.gasUsed);
+            accept(gasCost);
+          }
+        }.bind(this))
+      }
+    }.bind(this));
+  }
 
   assertThrowMessage(err) {
     expect(err.toString().indexOf('invalid JUMP') > -1 ||
       err.toString().indexOf('out of gas') > -1).to.be(true);
+  }
+
+  assertEventEquality(log, expectedLog) {
+    expect(log.event).to.be(expectedLog.event);
+    Object.keys(expectedLog.args).forEach(function(key, index) {
+      expect(log.args[key].toString()).to.be(expectedLog.args[key].toString());
+    });
+  }
+
+  async getLatestBlockNumber(web3) {
+    return new Promise(function(accept, reject) {
+      web3.eth.getBlock('latest', function(err, block) {
+        if (err) reject(err);
+        else {
+          accept(block.number)
+        }
+      })
+    });
   }
 }
 
