@@ -6,6 +6,7 @@ import uuidV4 from 'uuid/v4';
 import {web3, util} from './init.js';
 import _ from 'lodash';
 import {LoanDataUnsigned, LoanDataMalformed} from './util/TestLoans.js';
+import {generateTestBids} from './util/BidUtils';
 
 describe('Loan', () => {
   let contract;
@@ -74,92 +75,108 @@ describe('Loan', () => {
     })
   })
 
-  describe('#attest()', function() {
-    it('should not let anyone but the attestor defined in the terms attest to the loan', async function() {
-      try {
-        await loan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE',
-          { from: ACCOUNTS[2] });
-        expect().fail("should return error");
-      } catch (err) {
-        expect(err.toString().indexOf('not authorized to attest') > -1).to.be(true);
-      }
+  let bids;
+
+  describe('#bid()', async () => {
+    before(() => {
+      bids = generateTestBids(web3, ACCOUNTS.slice(2, 10), 0.25, 0.5);
     })
 
-    it('should not allow anyone to attest with an invalid IPFS multihash', async function() {
-      try  {
-        await loan.attest('abcdefgh', { from: ACCOUNTS[1] })
+    it('should let investors bid on loan request', async () => {
+      for (let i = 0; i < bids.length; i++) {
+        const bid = bids[i]
+        await loan.bid(bid.amount, bid.bidder, bid.minInterestRate,
+          { from: bid.bidder })
+      }
+    });
+
+    it('should throw if token recipient is malformed address', async () => {
+      try {
+        await loan.bid(bids[0].amount, '0x123', bids[0].minInterestRate,
+          { from: bids[0].bidder })
         expect().fail("should throw error");
       } catch (err) {
-        expect(err.toString().indexOf('not a valid IPFS') > -1).to.be(true);
-      }
-    })
-
-    it('should allow the defined attestor to attest to the loan', async function() {
-      try {
-        await loan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE',
-          { from: ACCOUNTS[1], gas: 1000000 });
-        const attestation = await loan.getAttestation();
-        expect(JSON.stringify(attestation)).to.be(JSON.stringify(exampleAttestation));
-      } catch (err) {
-        expect().fail(err)
+        expect(err.toString()).to.contain('valid ethereum address.')
       }
     })
   })
 
-  describe('#fund()', function() {
-    it("should let user fund a loan", async function() {
+  describe('#getBids()', () => {
+    it('should allow borrower to retrieve bids', async () => {
+      let retrievedBids = await loan.getBids();
+      for (let i = 0; i < bids.length; i++) {
+        expect(retrievedBids[i].amount.equals(bids[i].amount)).to.be(true)
+        expect(retrievedBids[i].minInterestRate.equals(bids[i].minInterestRate)).to.be(true)
+        expect(retrievedBids[i].bidder).to.be(bids[i].bidder)
+      }
+    })
+  })
+
+  describe('#acceptBids()', () => {
+    before(async () => {
+      await util.setBlockNumberForward(20);
+    })
+
+    it('should throw if borrower accepts bids that total < principal + fee', async () => {
       try {
-        const amount = 100;
-        const funder = ACCOUNTS[2];
-        await loan.fund(amount, funder)
-        const balance = await loan.balanceOf(funder);
-        expect(balance.equals(amount)).to.be(true);
-        const amountFunded = await loan.amountFunded();
-        expect(amountFunded.equals(amount)).to.be(true);
+        let acceptedBids = bids.slice(0,1).map((bid) => {
+          return {
+            bidder: bid.bidder,
+            amount: web3.toWei(0.2, 'ether'),
+          }
+        })
+        await loan.acceptBids(acceptedBids)
+        expect().fail('should throw error')
       } catch (err) {
-        expect().fail(err)
+        expect(err.toString()).to.contain('should equal the desired principal');
       }
     })
 
-    it("should let a user fund a loan specifying a different token recipient", async function() {
+    it('should throw if borrower accept sbids that total > principal + fee', async () => {
       try {
-        const amount = 800;
-        const total = 900;
-        const tokenRecipient = ACCOUNTS[3];
-        const funder = ACCOUNTS[2];
-        await loan.fund(amount, tokenRecipient, { from: funder });
-        const balance = await loan.balanceOf(tokenRecipient);
-        expect(balance.equals(amount)).to.be(true);
-        const amountFunded = await loan.amountFunded();
-        expect(amountFunded.equals(total)).to.be(true);
+        let acceptedBids = bids.slice(0,10).map((bid) => {
+          return {
+            bidder: bid.bidder,
+            amount: web3.toWei(0.2, 'ether'),
+          }
+        })
+        await loan.acceptBids(acceptedBids)
+        expect().fail('should throw error')
       } catch (err) {
-        expect().fail(err)
+        expect(err.toString()).to.contain('should equal the desired principal');
       }
     })
 
-    it("should not let a user fund a loan specifying a malformed token recipient address", async function() {
+    it('should throw if borrower accepts bids that have malformed data', async () => {
       try {
-        const amount = 800;
-        const tokenRecipient = 'abcdex123';
-        const funder = ACCOUNTS[2];
-        await loan.fund(amount, tokenRecipient, { from: funder })
-        expect().fail("should throw error");
+        let acceptedBids = bids.slice(0,5).map((bid) => {
+          return {
+            bidder: '0x123',
+            amount: web3.toWei(0.2002, 'ether'),
+          }
+        })
+        await loan.acceptBids(acceptedBids)
+        expect().fail('should throw error')
       } catch (err) {
-        expect(err.toString().indexOf('must be valid ethereum address') > -1).to.be(true);
+        expect(err.toString()).to.contain('format is invalid');
       }
     })
 
-    it("should transfer the balance to a user when the loan's fully funded", async function() {
-      try {
-        const amount = 200;
-        const funder = ACCOUNTS[2];
-        const borrowerBalanceBefore = web3.eth.getBalance(ACCOUNTS[0]);
-        await loan.fund(amount, funder, { from: funder });
-        borrowerBalanceAfter = web3.eth.getBalance(ACCOUNTS[0]);
-        expect(borrowerBalanceAfter.sub(borrowerBalanceBefore).equals(terms.principal)).to.be(true);
-      } catch (err) {
-        expect().fail(err);
-      }
+    it('should let borrower accept bids that total = principal + fee', async () => {
+      let acceptedBids = bids.slice(0,5).map((bid) => {
+        return {
+          bidder: bid.bidder,
+          amount: web3.toWei(0.2002, 'ether'),
+        }
+      })
+
+      const balanceBefore = web3.eth.getBalance(loan.borrower);
+      const result = await loan.acceptBids(acceptedBids)
+      const balanceAfter = web3.eth.getBalance(loan.borrower);
+      const gasCosts = await util.getGasCosts(result);
+      const balanceDelta = balanceAfter.minus(balanceBefore).plus(gasCosts);
+
+      expect(balanceDelta.equals(loan.principal)).to.be(true);
     })
   })
 
@@ -188,11 +205,6 @@ describe('Loan', () => {
     })
 
     it("should let a user make a repayment once the loan's fully funded", async function() {
-      try {
-
-      } catch (err) {
-
-      }
       loan.repay(100, { from: ACCOUNTS[0] }, function(err, result) {
         if (err) done(err)
         else {

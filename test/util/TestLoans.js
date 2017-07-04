@@ -17,8 +17,8 @@ module.exports = {
       },
       attestorFee: web3.toWei(0.001, 'ether'),
       defaultRisk: 0.323,
-      auctionPeriodLength: 10,
-      reviewPeriodLength: 10
+      auctionPeriodLength: 20,
+      reviewPeriodLength: 100
     }
   },
 

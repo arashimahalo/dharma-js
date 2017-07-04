@@ -1,5 +1,1 @@
-var Migrations = artifacts.require("./Migrations.sol");
-
-module.exports = function(deployer) {
-  deployer.deploy(Migrations);
-};
+submodules/LoanStandard/migrations/1_initial_migration.js
