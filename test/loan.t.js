@@ -1,61 +1,57 @@
-const Loan = require('../lib/loan.js');
-const LoanContract = require('../lib/contract_wrappers/LoanContract.js')
-const Metadata = require('../package.json');
-const expect = require('expect.js');
-const uuidV4 = require('uuid/v4');
-const exampleAttestation = require('./attestations/example.js');
-const web3 = require('./init.js');
+import Loan from '../lib/Loan.js';
+import LoanContract from '../lib/contract_wrappers/LoanContract.js';
+import Metadata from '../package.json';
+import expect from 'expect.js';
+import uuidV4 from 'uuid/v4';
+import {web3, util} from './init.js';
+import _ from 'lodash';
+import {LoanDataUnsigned, LoanDataMalformed} from './util/TestLoans.js';
 
-describe('Loan', function() {
+describe('Loan', () => {
   let contract;
   let uuid;
   let loan;
-  let terms;
-
-  before(function(done) {
-    web3.eth.getBlock('latest', function(err, result) {
-      if (err) done(err);
-      else {
-        const timelock = result.timestamp + 60 * 60;
-        terms = {
-          borrower: ACCOUNTS[0],
-          attestor: ACCOUNTS[1],
-          principal: 1000,
-          interest: 5,
-          periodType: 'daily',
-          periodLength: 1,
-          termLength: 3,
-          fundingPeriodTimeLock: timelock
-        };
-        uuid = web3.sha3(uuidV4());
-        loan = new Loan(web3, uuid, terms);
-        done();
-      }
-    })
-  })
 
   describe('#constructor()', function() {
-    it('should instantiate without throwing with valid hex uuid', function() {
-      expect(() => { new Loan(web3, uuid, terms) }).to.not.throwException();
-    });
+    let unsignedLoanData;
+    let malformedLoanData;
+    let signedLoanData;
 
-    it('should throw when instantiating with invalid uuid', function() {
-      expect(() => { new Loan(web3, 'axb12345', terms) }).to.throwException();
-    });
-
-    it('should throw when instantiated without required terms', function() {
-      expect(() => { new Loan(web3, uuid, { principal: 1 }) }).to.throwException();
+    before(() => {
+       unsignedLoanData = LoanDataUnsigned(ACCOUNTS);
+       malformedLoanData = LoanDataMalformed(ACCOUNTS);
     })
 
-    it('should throw when instantiated with terms that are malformed', function() {
-      let malformedNumberType = Object.assign({}, terms);
-      malformedNumberType.principal = 'no strings for number type values';
+    it('should instantiate w/o throwing w/ valid unsigned loan data', async () => {
+      loan = await Loan.create(web3, unsignedLoanData);
+    });
 
-      let malformedStringType = Object.assign({}, terms);
-      malformedStringType.periodType = 100
+    it('should instantiate w/o throwing w/ valid signed loan data', async () => {
+      loan = await Loan.create(web3, unsignedLoanData);
+      await loan.signAttestation()
 
-      expect(() => { new Loan(web3, uuid, malformedNumberType) }).to.throwException();
-      expect(() => { new Loan(web3, uuid, malformedStringType) })
+      signedLoanData = unsignedLoanData;
+      signedLoanData.signature = loan.signature;
+      loan = await Loan.create(web3, signedLoanData);
+    })
+
+    it('should throw when instantiated with malformed loan data', async () => {
+      try {
+        await Loan.create(web3, LoanDataMalformed(ACCOUNTS))
+        expect().fail('should throw error')
+      } catch (err) {
+        expect(err.toString()).to.contain("is not a valid");
+      }
+    })
+
+    it('should throw if included signature is not valid', async () => {
+      signedLoanData.defaultRisk = 0.1;
+      try {
+        await Loan.create(web3, signedLoanData)
+        expect().fail('should throw error')
+      } catch (err) {
+        expect(err.toString()).to.contain("invalid signature!");
+      }
     })
   })
 
