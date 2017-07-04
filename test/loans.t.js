@@ -1,46 +1,58 @@
-const Loans = require('../lib/loans')
-const web3 = require('./init.js');
-const expect = require('expect.js');
-
-const loans = new Loans(web3);
+import Loans from '../lib/loans';
+import {web3, util} from './init.js';
+import expect from 'expect.js';
+import TestLoans from './util/TestLoans';
+import {LoanCreated, LoanTermBegin, LoanBidsRejected, PeriodicRepayment,
+          ValueRedeemed} from './util/LoanEvents';
 
 describe('Loans', function() {
-  let terms;
+  let loans;
+  let loan;
 
-  before(function(done) {
-    web3.eth.getBlock('latest', function(err, result) {
-      if (err) done(err);
-      else {
-        const timelock = result.timestamp + 60 * 60;
-        terms = {
-          borrower: ACCOUNTS[0],
-          attestor: ACCOUNTS[1],
-          principal: 1000,
-          interest: 5,
-          periodType: 'daily',
-          periodLength: 1,
-          termLength: 3,
-          fundingPeriodTimeLock: timelock
-        };
-        done();
-      }
-    });
+  before(() => {
+    loans = new Loans(web3);
   })
 
   describe('#create()', function() {
-    it('should create a new loan when terms are formatted correctly', function() {
-      let loan;
-      expect(() => { loan = loans.create(terms) }).to.not.throwException();
-      expect(/0x[0-9A-Fa-f]{64}/g.test(loan.uuid)).to.be(true);
+    let unsignedLoanData;
+    let signedLoanData;
+    let malformedLoanData;
+
+    before(() => {
+      unsignedLoanData = TestLoans.LoanDataUnsigned(ACCOUNTS);
+      malformedLoanData = TestLoans.LoanDataMalformed(ACCOUNTS);
     })
 
-    it('should throw when attempting to create loan w/ malformed/missing terms', function() {
-      const malformedTerms = {
-        borrower: 123,
-        principal: 'malformed'
-      }
-      expect(() => { loans.create(malformedTerms) }).to.throwException();
+    it('should instantiate w/o throwing w/ valid unsigned loan data', async () => {
+      loan = await loans.create(unsignedLoanData);
+    });
 
+    it('should instantiate w/o throwing w/ valid signed loan data', async () => {
+      loan = await loans.create(unsignedLoanData);
+      await loan.signAttestation()
+
+      signedLoanData = unsignedLoanData;
+      signedLoanData.signature = loan.signature;
+      loan = await loans.create(signedLoanData);
+    })
+
+    it('should throw when instantiated with malformed loan data', async () => {
+      try {
+        await loans.create(TestLoans.LoanDataMalformed(ACCOUNTS))
+        expect().fail('should throw error')
+      } catch (err) {
+        expect(err.toString()).to.contain("is not a valid");
+      }
+    })
+
+    it('should throw if included signature is not valid', async () => {
+      signedLoanData.defaultRisk = 0.1;
+      try {
+        await loans.create(signedLoanData)
+        expect().fail('should throw error')
+      } catch (err) {
+        expect(err.toString()).to.contain("invalid signature!");
+      }
     })
   })
 
@@ -48,129 +60,106 @@ describe('Loans', function() {
     this.timeout(10000)
     let loan;
 
-    before(function() {
-      loan = loans.create(terms);
+    before(async () => {
+      loan = await loans.create(TestLoans.LoanDataUnsigned(ACCOUNTS));
+
     })
 
-    it('should callback when LoanCreated with query', async function() {
-      return new Promise(async function(accept, reject) {
-        let borrowerCreatedLoanEvent = await loans.events.created({ _borrower: ACCOUNTS[0] });
-        borrowerCreatedLoanEvent.watch(function(err, obj) {
-          if (err) reject(err);
-          else {
-            borrowerCreatedLoanEvent.stopWatching();
-            accept();
-          }
-        })
+    it("should callback on LoanCreated event", async function() {
+      const blockNumber = await util.getLatestBlockNumber(web3);
+      const loanCreatedEvent = await loans.events.created({ uuid: loan.uuid });
+      loanCreatedEvent.watch(function(err, result) {
+        util.assertEventEquality(result, LoanCreated({
+          uuid: loan.uuid,
+          borrower: loan.borrower,
+          attestor: loan.attestor,
+          blockNumber: blockNumber + 1
+        }))
+        loanCreatedEvent.stopWatching();
+      })
 
-        await loan.broadcast();
-      });
+      await loan.signAttestation();
+      await loan.broadcast();
     })
 
-    it('should callback when Attested with query', async function() {
-      return new Promise(async function(accept, reject) {
-        const attestedEvent = await loans.events.attested({ _attestor: ACCOUNTS[1] });
-        attestedEvent.watch(function(err, obj) {
-          if (err) reject(err)
-          else {
-            attestedEvent.stopWatching();
-            accept();
-          }
-        })
+    it("should callback on LoanTermBegin event", async function() {
+      const loan = await TestLoans.LoanInReviewState(ACCOUNTS);
 
-        await loan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE',
-          { from: ACCOUNTS[1], gas: 1000000 });
-      });
+      const blockNumber = await util.getLatestBlockNumber(web3);
+      const termBeginEvent = await loans.events.termBegin({ uuid: loan.uuid });
+      termBeginEvent.watch(function(err, result) {
+        util.assertEventEquality(result, LoanTermBegin({
+          uuid: loan.uuid,
+          borrower: loan.borrower,
+          blockNumber: blockNumber + 1
+        }))
+        termBeginEvent.stopWatching();
+      })
+
+      await loan.acceptBids(ACCOUNTS.slice(2,7).map((account) => {
+        return {
+          bidder: account,
+          amount: web3.toWei(0.2002, 'ether')
+        }
+      }))
     })
 
-    it('should callback when Investment with query', async function() {
-      return new Promise(async function(accept, reject) {
-        const investmentEvent = await loans.events.investment({ _investor: ACCOUNTS[2] });
-        investmentEvent.watch(function(err, obj) {
-          if (err) reject(err)
-          else {
-            investmentEvent.stopWatching();
-            accept();
-          }
-        })
+    it("should callback on LoanBidsRejected event", async function() {
+      const loan = await TestLoans.LoanInReviewState(ACCOUNTS);
 
-        await loan.fund(200, ACCOUNTS[2]);
-      });
+      const blockNumber = await util.getLatestBlockNumber(web3);
+      const bidsRejectedEvent = await loans.events.bidsRejected({ uuid: loan.uuid });
+      bidsRejectedEvent.watch(function(err, result) {
+        util.assertEventEquality(result, LoanBidsRejected({
+          uuid: loan.uuid,
+          borrower: loan.borrower,
+          blockNumber: blockNumber + 1
+        }))
+        bidsRejectedEvent.stopWatching();
+      })
+
+      await loan.rejectBids();
     })
 
-    it('should callback when LoanTermBegin with query', async function() {
-      return new Promise(async function(accept, reject) {
-        const termBeginEvent = await loans.events.termBegin({ _borrower: ACCOUNTS[0] });
-        termBeginEvent.watch(function(err, obj) {
-          if (err) reject(err)
-          else {
-            termBeginEvent.stopWatching();
-            accept();
-          }
-        })
+    it("should callback on PeriodicRepayment event", async function() {
+      const loan = await TestLoans.LoanInAcceptedState(ACCOUNTS);
 
-        await loan.fund(800, ACCOUNTS[2]);
-      });
+      const repaymentAmount = web3.toWei(0.2, 'ether');
+      const blockNumber = await util.getLatestBlockNumber(web3);
+      const repaymentEvent = await loans.events.repayment({ from: loan.borrower });
+      repaymentEvent.watch(function(err, result) {
+        util.assertEventEquality(result, PeriodicRepayment({
+          uuid: loan.uuid,
+          from: loan.borrower,
+          value: repaymentAmount,
+          blockNumber: blockNumber + 1
+        }))
+        repaymentEvent.stopWatching();
+      })
+
+      await loan.repay(repaymentAmount);
     })
 
-    it('should callback when PeriodicRepayment with query', async function() {
-      return new Promise(async function(accept, reject) {
-        const repaymentEvent = await loans.events.repayment({ _borrower: ACCOUNTS[0] });
-        repaymentEvent.watch(function(err, obj) {
-          if (err) reject(err)
-          else {
-            repaymentEvent.stopWatching();
-            accept();
-          }
-        })
+    it("should callback on ValueRedeemed event", async function() {
+      const loan = await TestLoans.LoanInAcceptedState(ACCOUNTS);
+      await loan.repay(web3.toWei(0.3, 'ether'));
 
-        await loan.repay(800);
+      const redeemableValue = await loan.getRedeemableValue(ACCOUNTS[2]);
+
+      const blockNumber = await util.getLatestBlockNumber(web3);
+      const valueRedeemedEvent = await loans.events.valueRedeemed({ investor: ACCOUNTS[2] });
+      valueRedeemedEvent.watch(function(err, result) {
+        util.assertEventEquality(result, ValueRedeemed({
+          uuid: loan.uuid,
+          investor: ACCOUNTS[2],
+          recipient: ACCOUNTS[2],
+          value: redeemableValue,
+          blockNumber: blockNumber + 1
+        }))
+        valueRedeemedEvent.stopWatching();
       });
-    })
 
-    it('should callback when InvestmentRedeemed with query', async function() {
-      return new Promise(async function(accept, reject) {
-        const investmentRedeemedEvent = await loans.events.investmentRedeemed({ _recipient: ACCOUNTS[2] });
-        investmentRedeemedEvent.watch(function(err, obj) {
-          if (err) reject(err)
-          else {
-            investmentRedeemedEvent.stopWatching();
-            accept();
-          }
-        })
-
-        await loan.redeemValue(ACCOUNTS[2], { from: ACCOUNTS[2] });
-      });
-    })
-
-    it('should callback when Transfer with query', async function() {
-      return new Promise(async function(accept, reject) {
-        const transferEvent = await loans.events.transfer({ _to: ACCOUNTS[3] });
-        transferEvent.watch(function(err, obj) {
-          if (err) reject(err)
-          else {
-            transferEvent.stopWatching();
-            accept();
-          }
-        })
-
-        await loan.transfer(ACCOUNTS[3], 100, { from: ACCOUNTS[2] });
-      });
-    })
-
-    it('should callback when Approve with query', async function() {
-      return new Promise(async function(accept, reject) {
-        const approveEvent = await loans.events.approval({ _spender: ACCOUNTS[4] });
-        approveEvent.watch(function(err, obj) {
-          if (err) reject(err)
-          else {
-            approveEvent.stopWatching();
-            accept();
-          }
-        })
-
-        await loan.approve(ACCOUNTS[4], 100, { from: ACCOUNTS[2] });
-      });
+      await loan.redeemValue(ACCOUNTS[2], { from: ACCOUNTS[2] })
     })
   })
 })
