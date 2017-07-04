@@ -180,6 +180,51 @@ describe('Loan', () => {
     })
   })
 
+  describe('#rejectBids()', () => {
+    describe('Auction State', () => {
+      it('should throw if borrower rejects bids during auction', async () => {
+        const auctionStateLoan = await TestLoans.LoanInAuctionState(ACCOUNTS);
+        try {
+          await auctionStateLoan.rejectBids()
+          expect().fail('should throw error')
+        } catch (err) {
+          expect(err.toString()).to.contain('during the review period.');
+        }
+      })
+    })
+
+    describe('Review State', () => {
+      it('should let borrower rejects bids during the review period', async () => {
+        const reviewStateLoan = await TestLoans.LoanInReviewState(ACCOUNTS);
+        await reviewStateLoan.rejectBids();
+      })
+    })
+
+    describe('Accepted State', () => {
+      it('should throw if borrower rejects bids after accepting', async () => {
+        const acceptedStateLoan = await TestLoans.LoanInAcceptedState(ACCOUNTS);
+        try {
+          await acceptedStateLoan.rejectBids()
+          expect().fail('should throw error')
+        } catch (err) {
+          expect(err.toString()).to.contain('during the review period.');
+        }
+      })
+    })
+
+    describe('Rejected State', () => {
+      it('should throw if borrower rejects bids after rejecting', async () => {
+        const rejectedStateLoan = await TestLoans.LoanInRejectedState(ACCOUNTS);
+        try {
+          await rejectedStateLoan.rejectBids()
+          expect().fail('should throw error')
+        } catch (err) {
+          expect(err.toString()).to.contain('during the review period.');
+        }
+      })
+    })
+  })
+
   describe('#withdrawInvestment()', () => {
     let withdrawTestLoan;
 
@@ -258,39 +303,25 @@ describe('Loan', () => {
   })
 
   describe("#repay()", async function() {
-    let unfundedLoan;
+    let loanInReview;
 
-    before(async function() {
-      try {
-        const unfundedLoanUuid = web3.sha3(uuidV4());
-        unfundedLoan = new Loan(web3, unfundedLoanUuid, terms)
-        await unfundedLoan.broadcast()
-        await unfundedLoan.attest('QmaF1vXQDHnn5MVgfRc54Hs1ivemMDdfLhZABpuJwQwuPE',
-          { from: ACCOUNTS[1], gas: 500000 });
-      } catch (err) {
-        expect().fail(err);
-      }
+    before(async () => {
+      loanInReview = await TestLoans.LoanInReviewState(ACCOUNTS);
     })
 
-    it("should not let a user make a repayment before the loan is fully funded", async function() {
+    it("should not let a user make a repayment before the loan term begins", async function() {
       try {
-        await unfundedLoan.repay(100, { from: ACCOUNTS[0] });
+        await loanInReview.repay(web3.toWei(0.1, 'ether'), { from: ACCOUNTS[0] });
         expect().fail("should throw error");
       } catch (err) {
-        util.assertThrowMessage(err);
+        expect(err.toString()).to.contain('until loan term has begun.');
       }
     })
 
-    it("should let a user make a repayment once the loan's fully funded", async function() {
-      loan.repay(100, { from: ACCOUNTS[0] }, function(err, result) {
-        if (err) done(err)
-        else {
-          loan.amountRepaid(function(err, amount) {
-            expect(amount.equals(100)).to.be(true);
-            done();
-          })
-        }
-      })
+    it("should let a user make a repayment once the loan term begins", async function() {
+      await loan.repay(web3.toWei(0.1, 'ether'), { from: ACCOUNTS[0] });
+      const amountRepaid = await loan.amountRepaid()
+      expect(amountRepaid.equals(web3.toWei(0.1, 'ether'))).to.be(true);
     });
   })
 
