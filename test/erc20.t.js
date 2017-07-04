@@ -87,10 +87,10 @@ describe('ERC20', function() {
       const blockNumber = await util.getLatestBlockNumber(web3);
       const approvalEvent = await loan.events.approval();
       approvalEvent.watch(function(err, result) {
-        util.assertEventEquality(result, Transfer({
+        util.assertEventEquality(result, Approval({
           uuid: loan.uuid,
-          from: ACCOUNTS[5],
-          to: ACCOUNTS[3],
+          owner: ACCOUNTS[5],
+          spender: ACCOUNTS[3],
           value: amount,
           blockNumber: blockNumber + 1
         }))
