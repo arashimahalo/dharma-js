@@ -9,6 +9,7 @@ import TestLoans from './util/TestLoans.js';
 import {LoanCreated, LoanTermBegin, LoanBidsRejected, PeriodicRepayment,
           ValueRedeemed} from './util/LoanEvents';
 import {generateTestBids} from './util/BidUtils';
+import sinon from 'sinon';
 
 describe('Loan', () => {
   let contract;
@@ -387,6 +388,22 @@ describe('Loan', () => {
       })
 
       await loanOfInterest.broadcast();
+    })
+
+    it('should callback on onReviewState listener', async () => {
+      let onReviewCallback = sinon.spy();
+
+      await loanOfInterest.onReviewState(onReviewCallback);
+      await util.setBlockNumberForward(20);
+
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          expect(onReviewCallback.calledOnce).to.be(true);
+          expect(onReviewCallback.args[0][0]).to.be(null);
+          expect(typeof onReviewCallback.args[0][1] === 'number').to.be(true);
+          resolve();
+        }, 5000);
+      })
     })
 
     it("should callback on LoanTermBegin event", async function() {
