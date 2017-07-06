@@ -1,5 +1,5 @@
 import {web3, util} from './init.js';
-import Loan from '../lib/loan.js';
+import Loan from '../src/Loan.js';
 import Metadata from '../package.json';
 import expect from 'expect.js';
 import uuidV4 from 'uuid/v4';
@@ -30,6 +30,7 @@ describe('ERC20', function() {
         await loan.transfer(400, ACCOUNTS[4], { from: ACCOUNTS[4] })
         expect().fail("should throw error");
       } catch (err) {
+        console.log(err);
         util.assertThrowMessage(err);
       }
     })

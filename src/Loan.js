@@ -1,0 +1,298 @@
+'use strict';
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _redeemableErc = require('./redeemableErc20');
+
+var _redeemableErc2 = _interopRequireDefault(_redeemableErc);
+
+var _LoanContract = require('./contract_wrappers/LoanContract');
+
+var _LoanContract2 = _interopRequireDefault(_LoanContract);
+
+var _config = require('../config');
+
+var _config2 = _interopRequireDefault(_config);
+
+var _requestPromise = require('request-promise');
+
+var _requestPromise2 = _interopRequireDefault(_requestPromise);
+
+var _LoanSchema = require('./schemas/LoanSchema');
+
+var _LoanSchema2 = _interopRequireDefault(_LoanSchema);
+
+var _BidSchema = require('./schemas/BidSchema');
+
+var _BidSchema2 = _interopRequireDefault(_BidSchema);
+
+var _events = require('./events');
+
+var _events2 = _interopRequireDefault(_events);
+
+var _Attestation = require('./Attestation');
+
+var _Attestation2 = _interopRequireDefault(_Attestation);
+
+var _Terms = require('./Terms');
+
+var _Terms2 = _interopRequireDefault(_Terms);
+
+var _Util = require('./Util');
+
+var _Util2 = _interopRequireDefault(_Util);
+
+var _Constants = require('./Constants');
+
+var _Constants2 = _interopRequireDefault(_Constants);
+
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var UNDEFINED_GAS_ALLOWANCE = 500000;
+
+var Loan = function (_RedeemableERC) {
+  _inherits(Loan, _RedeemableERC);
+
+  function Loan(web3, params) {
+    _classCallCheck(this, Loan);
+
+    return _possibleConstructorReturn(this, (Loan.__proto__ || Object.getPrototypeOf(Loan)).call(this, web3, params));
+  }
+
+  _createClass(Loan, [{
+    key: 'broadcast',
+    value: async function broadcast(options) {
+      var contract = await _LoanContract2.default.instantiate(this.web3);
+
+      options = options || { from: this.web3.eth.defaultAccount };
+
+      if (typeof options.gas === 'undefined') {
+        options.gas = UNDEFINED_GAS_ALLOWANCE;
+      }
+
+      return contract.createLoan(this.uuid, this.borrower, this.principal, this.terms.toByteString(), this.attestor, this.attestorFee, this.defaultRisk, this.signature.r, this.signature.s, this.signature.v, this.auctionPeriodLength, this.reviewPeriodLength, options);
+    }
+  }, {
+    key: 'bid',
+    value: async function bid(amount, tokenRecipient, minInterestRate, options) {
+      var contract = await _LoanContract2.default.instantiate(this.web3);
+
+      options = options || { from: this.web3.eth.defaultAccount };
+
+      if (typeof options.gas === 'undefined') {
+        options.gas = UNDEFINED_GAS_ALLOWANCE;
+      }
+
+      if (!this.web3.isAddress(tokenRecipient)) throw new Error("Token recipient must be valid ethereum address.");
+
+      options.value = amount;
+      return contract.bid(this.uuid, tokenRecipient, minInterestRate, options);
+    }
+  }, {
+    key: 'getBids',
+    value: async function getBids() {
+      var _this2 = this;
+
+      var contract = await _LoanContract2.default.instantiate(this.web3);
+
+      var numBids = await contract.getNumBids.call(this.uuid);
+      var bids = await Promise.all(_lodash2.default.range(numBids).map(async function (index) {
+        var bid = await contract.getBid.call(_this2.uuid, index);
+        return {
+          bidder: bid[0],
+          amount: bid[1],
+          minInterestRate: bid[2]
+        };
+      }));
+
+      return bids;
+    }
+  }, {
+    key: 'acceptBids',
+    value: async function acceptBids(bids, options) {
+      var contract = await _LoanContract2.default.instantiate(this.web3);
+
+      options = options || { from: this.web3.eth.defaultAccount };
+
+      if (typeof options.gas === 'undefined') {
+        options.gas = UNDEFINED_GAS_ALLOWANCE;
+      }
+
+      var bidSchema = new _BidSchema2.default(this.web3);
+      var totalBidValueAccepted = new this.web3.BigNumber(0);
+      for (var i = 0; i < bids.length; i++) {
+        bidSchema.validate(bids[i]);
+        totalBidValueAccepted = totalBidValueAccepted.plus(bids[i].amount);
+      }
+
+      if (!totalBidValueAccepted.equals(this.principal.plus(this.attestorFee))) throw new Error('Total value of bids accepted should equal the desired ' + "principal, plus the attestor's fee");
+
+      return await contract.acceptBids(this.uuid, bids.map(function (bid) {
+        return bid.bidder;
+      }), bids.map(function (bid) {
+        return bid.amount;
+      }), options);
+    }
+  }, {
+    key: 'rejectBids',
+    value: async function rejectBids(options) {
+      var contract = await _LoanContract2.default.instantiate(this.web3);
+
+      options = options || { from: this.web3.eth.defaultAccount };
+
+      if (typeof options.gas === 'undefined') {
+        options.gas = UNDEFINED_GAS_ALLOWANCE;
+      }
+
+      var auctionPeriodEndBlock = await contract.getAuctionEndBlock.call(this.uuid);
+      var reviewPeriodEndBlock = await contract.getReviewPeriodEndBlock.call(this.uuid);
+      var latestBlockNumber = await _Util2.default.getLatestBlockNumber(this.web3);
+      var state = await contract.getState.call(this.uuid);
+
+      if (state.equals(_Constants2.default.AUCTION_STATE)) {
+        if (latestBlockNumber < auctionPeriodEndBlock) throw new Error('Bids can only be rejected during the review period.');
+      } else if (state.equals(_Constants2.default.REVIEW_STATE)) {
+        if (latestBlockNumber >= reviewPeriodEndBlock) throw new Error('Bids can only be rejected during the review period.');
+      } else {
+        throw new Error('Bids can only be rejected during the review period.');
+      }
+
+      return await contract.rejectBids(this.uuid, options);
+    }
+  }, {
+    key: 'repay',
+    value: async function repay(amount, options) {
+      var contract = await _LoanContract2.default.instantiate(this.web3);
+
+      options = options || { from: this.web3.eth.defaultAccount };
+
+      options.value = amount;
+
+      var state = await contract.getState.call(this.uuid);
+
+      if (!state.equals(_Constants2.default.ACCEPTED_STATE)) throw new Error('Repayments cannot be made until loan term has begun.');
+
+      return contract.periodicRepayment(this.uuid, options);
+    }
+  }, {
+    key: 'withdrawInvestment',
+    value: async function withdrawInvestment(options, callback) {
+      var contract = await _LoanContract2.default.instantiate(this.web3);
+
+      options = options || { from: this.web3.eth.defaultAccount };
+
+      var auctionPeriodEndBlock = await contract.getAuctionEndBlock.call(this.uuid);
+      var reviewPeriodEndBlock = await contract.getReviewPeriodEndBlock.call(this.uuid);
+      var latestBlockNumber = await _Util2.default.getLatestBlockNumber(this.web3);
+      var state = await contract.getState.call(this.uuid);
+
+      if (!state.equals(_Constants2.default.ACCEPTED_STATE) && !state.equals(_Constants2.default.REJECTED_STATE)) {
+        if (latestBlockNumber < auctionPeriodEndBlock) {
+          throw new Error('Bids cannot be withdrawn during the auction period.');
+        } else if (latestBlockNumber <= reviewPeriodEndBlock) {
+          throw new Error('Bids cannot be withdrawn during the review period.');
+        }
+      }
+
+      return contract.withdrawInvestment(this.uuid, options);
+    }
+  }, {
+    key: 'amountRepaid',
+    value: async function amountRepaid(options, callback) {
+      var contract = await _LoanContract2.default.instantiate(this.web3);
+
+      options = options || { from: this.web3.eth.defaultAccount };
+
+      return contract.getAmountRepaid.call(this.uuid, options);
+    }
+  }, {
+    key: 'signAttestation',
+    value: async function signAttestation() {
+      this.signature = await this.attestation.sign();
+    }
+  }, {
+    key: 'verifyAttestation',
+    value: async function verifyAttestation() {
+      var validSignature = await this.attestation.verifySignature(this.signature);
+      if (!validSignature) throw new Error('Attestation has invalid signature!');
+    }
+  }, {
+    key: 'onReviewState',
+    value: async function onReviewState(callback) {
+      var contract = await _LoanContract2.default.instantiate(this.web3);
+
+      var blockListener = this.web3.eth.filter('latest');
+      var auctionPeriodEndBlock = await contract.getAuctionEndBlock.call(this.uuid);
+
+      blockListener.watch(function (err, result) {
+        if (err) {
+          callback(err, null);
+        } else {
+          _Util2.default.getLatestBlockNumber(this.web3).then(function (blockNumber) {
+            if (auctionPeriodEndBlock.lte(blockNumber)) {
+              callback(null, blockNumber);
+              blockListener.stopWatching();
+            }
+          });
+        }
+      }.bind(this));
+    }
+  }], [{
+    key: 'create',
+    value: async function create(web3, params) {
+      var loan = new Loan(web3, params);
+
+      loan.web3 = web3;
+
+      var schema = new _LoanSchema2.default(web3);
+      schema.validate(params);
+
+      loan.uuid = params.uuid;
+      loan.borrower = params.borrower;
+      loan.principal = new web3.BigNumber(params.principal);
+      loan.terms = new _Terms2.default(web3, params.terms);
+      loan.attestor = params.attestor;
+      loan.attestorFee = new web3.BigNumber(params.attestorFee);
+      loan.defaultRisk = new web3.BigNumber(params.defaultRisk);
+      loan.signature = params.signature;
+      loan.auctionPeriodLength = new web3.BigNumber(params.auctionPeriodLength);
+      loan.reviewPeriodLength = new web3.BigNumber(params.reviewPeriodLength);
+
+      loan.attestation = new _Attestation2.default(loan.web3, {
+        uuid: loan.uuid,
+        borrower: loan.borrower,
+        principal: loan.principal,
+        terms: loan.terms.toByteString(),
+        attestor: loan.attestor,
+        attestorFee: loan.attestorFee,
+        defaultRisk: loan.defaultRisk
+      });
+
+      if (loan.signature) await loan.verifyAttestation();
+
+      loan.events = new _events2.default(web3, { _uuid: loan.uuid });
+
+      return loan;
+    }
+  }, {
+    key: 'broadcast',
+    value: async function broadcast(web3, params, options) {
+      var loan = await Loan.create(web3, params);
+      await loan.broadcast(options);
+    }
+  }]);
+
+  return Loan;
+}(_redeemableErc2.default);
+
+module.exports = Loan;

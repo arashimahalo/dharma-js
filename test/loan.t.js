@@ -1,5 +1,5 @@
-import Loan from '../lib/Loan.js';
-import LoanContract from '../lib/contract_wrappers/LoanContract.js';
+import Loan from '../src/Loan.js';
+import LoanContract from '../src/contract_wrappers/LoanContract.js';
 import Metadata from '../package.json';
 import expect from 'expect.js';
 import uuidV4 from 'uuid/v4';
@@ -36,6 +36,7 @@ describe('Loan', () => {
 
       signedLoanData = unsignedLoanData;
       signedLoanData.signature = loan.signature;
+
       loan = await Loan.create(web3, signedLoanData);
     })
 

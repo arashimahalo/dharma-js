@@ -1,5 +1,3 @@
-require("babel-polyfill");
-
-import Dharma from './lib/dharma';
+const Dharma = require('./src/dharma');
 
 module.exports = Dharma;

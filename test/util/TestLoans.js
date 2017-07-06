@@ -1,6 +1,6 @@
 import {web3, util} from '../init.js';
 import uuidV4 from 'uuid/v4';
-import Loan from '../../lib/Loan';
+import Loan from '../../src/Loan';
 import {generateTestBids} from './BidUtils';
 
 class TestLoans {

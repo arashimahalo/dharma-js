@@ -63,7 +63,8 @@ class Util {
 
   assertThrowMessage(err) {
     expect(err.toString().indexOf('invalid JUMP') > -1 ||
-      err.toString().indexOf('out of gas') > -1).to.be(true);
+      err.toString().indexOf('out of gas') > -1 ||
+      err.toString().indexOf('invalid opcode') > -1).to.be(true);
   }
 
   assertEventEquality(log, expectedLog) {
