@@ -46,7 +46,10 @@ var LoanContract = function () {
       Loan.setProvider(web3.currentProvider);
 
       var versionRegisterInstance = await VersionRegister.deployed();
-      var contractVersion = await versionRegisterInstance.currentVersion.call();
+
+      var promise = versionRegisterInstance.currentVersion.call();
+      var contractVersion = await promise;
+
       var localVersion = {
         major: _semver2.default.major(metadata.version),
         minor: _semver2.default.minor(metadata.version),

@@ -10,9 +10,9 @@ var _v = require('uuid/v4');
 
 var _v2 = _interopRequireDefault(_v);
 
-var _events = require('./events');
+var _Events = require('./events/Events');
 
-var _events2 = _interopRequireDefault(_events);
+var _Events2 = _interopRequireDefault(_Events);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -23,7 +23,7 @@ var Loans = function () {
     _classCallCheck(this, Loans);
 
     this.web3 = web3;
-    this.events = new _events2.default(web3);
+    this.events = new _Events2.default(web3);
   }
 
   _createClass(Loans, [{

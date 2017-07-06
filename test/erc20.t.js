@@ -30,7 +30,6 @@ describe('ERC20', function() {
         await loan.transfer(400, ACCOUNTS[4], { from: ACCOUNTS[4] })
         expect().fail("should throw error");
       } catch (err) {
-        console.log(err);
         util.assertThrowMessage(err);
       }
     })

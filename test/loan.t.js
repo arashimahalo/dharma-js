@@ -391,17 +391,18 @@ describe('Loan', () => {
       await loanOfInterest.broadcast();
     })
 
-    it('should callback on onReviewState listener', async () => {
-      let onReviewCallback = sinon.spy();
+    it('should callback on AuctionCompleted event', async () => {
+      let callback = sinon.spy();
 
-      await loanOfInterest.onReviewState(onReviewCallback);
-      await util.setBlockNumberForward(20);
+      const auctionCompletedEvent =
+        await loanOfInterest.events.auctionCompleted();
+      auctionCompletedEvent.watch(callback)
+
+      await util.setBlockNumberForward(25);
 
       await new Promise((resolve) => {
         setTimeout(() => {
-          expect(onReviewCallback.calledOnce).to.be(true);
-          expect(onReviewCallback.args[0][0]).to.be(null);
-          expect(typeof onReviewCallback.args[0][1] === 'number').to.be(true);
+          expect(callback.called).to.be(true);
           resolve();
         }, 5000);
       })

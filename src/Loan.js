@@ -26,9 +26,9 @@ var _BidSchema = require('./schemas/BidSchema');
 
 var _BidSchema2 = _interopRequireDefault(_BidSchema);
 
-var _events = require('./events');
+var _Events = require('./events/Events');
 
-var _events2 = _interopRequireDefault(_events);
+var _Events2 = _interopRequireDefault(_Events);
 
 var _Attestation = require('./Attestation');
 
@@ -80,6 +80,9 @@ var Loan = function (_RedeemableERC) {
         options.gas = UNDEFINED_GAS_ALLOWANCE;
       }
 
+      // const createdEvent = this.events.created()
+      // createdEvent.watch(this._loanCreatedCallback(createdEvent));
+
       return contract.createLoan(this.uuid, this.borrower, this.principal, this.terms.toByteString(), this.attestor, this.attestorFee, this.defaultRisk, this.signature.r, this.signature.s, this.signature.v, this.auctionPeriodLength, this.reviewPeriodLength, options);
     }
   }, {
@@ -106,6 +109,7 @@ var Loan = function (_RedeemableERC) {
       var contract = await _LoanContract2.default.instantiate(this.web3);
 
       var numBids = await contract.getNumBids.call(this.uuid);
+
       var bids = await Promise.all(_lodash2.default.range(numBids).map(async function (index) {
         var bid = await contract.getBid.call(_this2.uuid, index);
         return {
@@ -226,26 +230,27 @@ var Loan = function (_RedeemableERC) {
       var validSignature = await this.attestation.verifySignature(this.signature);
       if (!validSignature) throw new Error('Attestation has invalid signature!');
     }
+
+    // async _auctionStateBeginCallback(createdEvent) {
+    //   return (err, result) {
+    //     this.loanBroadcastedBlock = result.blockNumber;
+    //     createdEvent.stopWatching();
+    //     const reviewStateEvent = this.events.reviewState();
+    //     reviewStateEvent.watch(this._reviewStateBeginCallback(reviewStateEvent));
+    //   }.bind(this);
+    // }
+    //
+    // async _reviewStateBeginCallback(blockListener) {
+    //
+    // }
+
   }, {
-    key: 'onReviewState',
-    value: async function onReviewState(callback) {
+    key: 'awaitReviewState',
+    value: async function awaitReviewState(callback) {
       var contract = await _LoanContract2.default.instantiate(this.web3);
 
       var blockListener = this.web3.eth.filter('latest');
       var auctionPeriodEndBlock = await contract.getAuctionEndBlock.call(this.uuid);
-
-      blockListener.watch(function (err, result) {
-        if (err) {
-          callback(err, null);
-        } else {
-          _Util2.default.getLatestBlockNumber(this.web3).then(function (blockNumber) {
-            if (auctionPeriodEndBlock.lte(blockNumber)) {
-              callback(null, blockNumber);
-              blockListener.stopWatching();
-            }
-          });
-        }
-      }.bind(this));
     }
   }], [{
     key: 'create',
@@ -280,7 +285,7 @@ var Loan = function (_RedeemableERC) {
 
       if (loan.signature) await loan.verifyAttestation();
 
-      loan.events = new _events2.default(web3, { _uuid: loan.uuid });
+      loan.events = new _Events2.default(web3, { uuid: loan.uuid });
 
       return loan;
     }
