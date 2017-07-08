@@ -4,6 +4,7 @@ import expect from 'expect.js';
 import TestLoans from './util/TestLoans';
 import {LoanCreated, LoanTermBegin, LoanBidsRejected, PeriodicRepayment,
           ValueRedeemed} from './util/LoanEvents';
+import {LoanInAuctionState} from './util/TestLoans';
 
 describe('Loans', function() {
   let loans;
@@ -56,13 +57,25 @@ describe('Loans', function() {
     })
   })
 
+  describe('#get(uuid)', () => {
+    let loan;
+
+    before(async () => {
+      loan = await LoanInAuctionState(ACCOUNTS);
+    })
+
+    it("should retrieve loan with correct data", async () => {
+      const retrievedLoan = await loans.get(loan.uuid);
+      expect(retrievedLoan.equals(loan));
+    })
+  })
+
   describe('#events', function() {
     this.timeout(10000)
     let loan;
 
     before(async () => {
       loan = await loans.create(TestLoans.LoanDataUnsigned(ACCOUNTS));
-
     })
 
     it("should callback on LoanCreated event", async function() {

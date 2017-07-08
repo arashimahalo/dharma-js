@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "compile": "babel --presets es2015 lib/ --out-dir src/",
-    "test": "ENV=test npm run compile && mocha --require babel-register"
+    "test": "ENV=test npm run compile && mocha --require babel-register test/loans.t.js"
   },
   "repository": {
     "type": "git",
@@ -44,6 +44,6 @@
     "mocha": "^3.4.2",
     "sinon": "^2.3.6",
     "truffle": "^3.2.5",
-    "web3": "^0.19.0"
+    "web3": "^0.19.1"
   }
 }

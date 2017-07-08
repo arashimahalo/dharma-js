@@ -20,6 +20,8 @@ var AuctionCompleted = function () {
 
     this.web3 = web3;
     this.auctionPeriodEndBlock = auctionPeriodEndBlock;
+    this.blockListener = null;
+    this.listening = false;
   }
 
   _createClass(AuctionCompleted, [{
@@ -28,27 +30,35 @@ var AuctionCompleted = function () {
       var web3 = this.web3;
       var auctionPeriodEndBlock = this.auctionPeriodEndBlock;
 
-      var blockListener = this.web3.eth.filter('latest');
-      blockListener.watch(function (err, result) {
+      this.listening = true;
+
+      this.blockListener = this.web3.eth.filter('latest');
+      this.blockListener.watch(function (err, result) {
+
         if (err) {
+          this.listening = false;
           callback(err, null);
         } else {
-          _Util2.default.getLatestBlockNumber(web3).then(function (blockNumber) {
-            console.log(blockNumber);
-            console.log(auctionPeriodEndBlock);
+          web3.eth.getBlockNumber(function (err, blockNumber) {
+            if (!this.listening) return;
+
             if (auctionPeriodEndBlock.lt(blockNumber)) {
+              this.listening = false;
               callback(null, blockNumber);
-              blockListener.stopWatching();
             }
-          });
+          }.bind(this));
         }
-      });
+      }.bind(this));
+    }
+  }, {
+    key: 'stopWatching',
+    value: function stopWatching(callback) {
+      this.listening = false;
+      this.blockListener.stopWatching(callback);
     }
   }], [{
     key: 'create',
-    value: async function create(web3) {
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
+    value: async function create(web3, options, callback) {
       var contract = await _LoanContract2.default.instantiate(web3);
 
       if (options.uuid === 'undefined') throw new Error('AuctionCompleted event requires UUID to follow.');
@@ -57,7 +67,13 @@ var AuctionCompleted = function () {
 
       if (auctionPeriodEndBlock.equals(0)) throw new Error('AuctionCompleted listener can only be activated once loan' + 'has been broadcasted');
 
-      return new AuctionCompleted(web3, auctionPeriodEndBlock);
+      var auctionCompletedEvent = new AuctionCompleted(web3, auctionPeriodEndBlock);
+
+      if (callback) {
+        auctionCompletedEvent.watch(callback);
+      } else {
+        return auctionCompletedEvent;
+      }
     }
   }]);
 

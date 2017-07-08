@@ -86,6 +86,17 @@ var Attestation = function () {
         return false;
       }
     }
+  }], [{
+    key: 'fromSignatureData',
+    value: function fromSignatureData(web3, signature) {
+      var v = _Util2.default.stripZeroEx(web3.toHex(signature[2]));
+
+      return {
+        r: signature[0],
+        s: signature[1],
+        v: '0x' + web3.padLeft(v, 2)
+      };
+    }
   }]);
 
   return Attestation;

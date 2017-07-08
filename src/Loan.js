@@ -70,6 +70,11 @@ var Loan = function (_RedeemableERC) {
   }
 
   _createClass(Loan, [{
+    key: 'equals',
+    value: function equals(loan) {
+      return loan.uuid === this.uuid && loan.borrower === this.borrower && loan.principal.equals(this.principal) && loan.terms.equals(this.terms) && loan.attestor === this.attestor && loan.attestorFee.equals(this.attestorFee) && loan.defaultRisk.equals(this.defaultRisk) && _lodash2.default.isEqual(loan.signature, this.signature) && loan.auctionPeriodLength.equals(this.auctionPeriodLength) && loan.reviewPeriodLength.equals(this.reviewPeriodLength);
+    }
+  }, {
     key: 'broadcast',
     value: async function broadcast(options) {
       var contract = await _LoanContract2.default.instantiate(this.web3);
@@ -79,9 +84,6 @@ var Loan = function (_RedeemableERC) {
       if (typeof options.gas === 'undefined') {
         options.gas = UNDEFINED_GAS_ALLOWANCE;
       }
-
-      // const createdEvent = this.events.created()
-      // createdEvent.watch(this._loanCreatedCallback(createdEvent));
 
       return contract.createLoan(this.uuid, this.borrower, this.principal, this.terms.toByteString(), this.attestor, this.attestorFee, this.defaultRisk, this.signature.r, this.signature.s, this.signature.v, this.auctionPeriodLength, this.reviewPeriodLength, options);
     }
@@ -120,6 +122,11 @@ var Loan = function (_RedeemableERC) {
       }));
 
       return bids;
+    }
+  }, {
+    key: 'getContract',
+    value: async function getContract() {
+      return await _LoanContract2.default.instantiate(this.web3);
     }
   }, {
     key: 'acceptBids',
@@ -230,28 +237,6 @@ var Loan = function (_RedeemableERC) {
       var validSignature = await this.attestation.verifySignature(this.signature);
       if (!validSignature) throw new Error('Attestation has invalid signature!');
     }
-
-    // async _auctionStateBeginCallback(createdEvent) {
-    //   return (err, result) {
-    //     this.loanBroadcastedBlock = result.blockNumber;
-    //     createdEvent.stopWatching();
-    //     const reviewStateEvent = this.events.reviewState();
-    //     reviewStateEvent.watch(this._reviewStateBeginCallback(reviewStateEvent));
-    //   }.bind(this);
-    // }
-    //
-    // async _reviewStateBeginCallback(blockListener) {
-    //
-    // }
-
-  }, {
-    key: 'awaitReviewState',
-    value: async function awaitReviewState(callback) {
-      var contract = await _LoanContract2.default.instantiate(this.web3);
-
-      var blockListener = this.web3.eth.filter('latest');
-      var auctionPeriodEndBlock = await contract.getAuctionEndBlock.call(this.uuid);
-    }
   }], [{
     key: 'create',
     value: async function create(web3, params) {
@@ -272,6 +257,9 @@ var Loan = function (_RedeemableERC) {
       loan.signature = params.signature;
       loan.auctionPeriodLength = new web3.BigNumber(params.auctionPeriodLength);
       loan.reviewPeriodLength = new web3.BigNumber(params.reviewPeriodLength);
+
+      if (params.auctionPeriodEndBlock) loan.auctionPeriodEndBlock = new web3.BigNumber(params.auctionPeriodEndBlock);
+      if (params.reviewPeriodEndBlock) loan.reviewPeriodEndBlock = new web3.BigNumber(params.reviewPeriodEndBlock);
 
       loan.attestation = new _Attestation2.default(loan.web3, {
         uuid: loan.uuid,

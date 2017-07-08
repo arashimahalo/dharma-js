@@ -34,7 +34,9 @@ var LoanSchema = function (_Schema) {
       defaultRisk: new _Schema2.NumberType(),
       signature: new _SignatureSchema2.default({ optional: true }),
       auctionPeriodLength: new _Schema2.NumberType(),
-      reviewPeriodLength: new _Schema2.NumberType()
+      reviewPeriodLength: new _Schema2.NumberType(),
+      auctionPeriodEndBock: new _Schema2.NumberType({ optional: true }),
+      reviewPeriodEndBlock: new _Schema2.NumberType({ optional: true })
     };
     return _possibleConstructorReturn(this, (LoanSchema.__proto__ || Object.getPrototypeOf(LoanSchema)).call(this, 'Loan', schema));
   }

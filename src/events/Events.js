@@ -44,8 +44,8 @@ var Events = function () {
       _loop(eventName);
     }
 
-    this.auctionCompleted = async function (options) {
-      return await _AuctionCompleted2.default.create(web3, options || defaultOptions);
+    this.auctionCompleted = async function (callback) {
+      return await _AuctionCompleted2.default.create(web3, defaultOptions, callback);
     };
   }
 

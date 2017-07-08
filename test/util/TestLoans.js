@@ -18,7 +18,7 @@ class TestLoans {
         compounded: true
       },
       attestorFee: web3.toWei(0.001, 'ether'),
-      defaultRisk: 0.323,
+      defaultRisk: web3.toWei(0.323, 'ether'),
       auctionPeriodLength: 20,
       reviewPeriodLength: 40
     }
@@ -37,7 +37,7 @@ class TestLoans {
         compounded: true
       },
       attestorFee: web3.toWei(0.001, 'ether'),
-      defaultRisk: 0.323,
+      defaultRisk: web3.toWei(0.323, 'ether'),
       auctionPeriodLength: 10,
       reviewPeriodLength: 10
     }
