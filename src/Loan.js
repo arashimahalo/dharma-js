@@ -317,7 +317,7 @@ var Loan = function (_RedeemableERC) {
       loan.servicing = new _Servicing2.default(loan);
       loan.stateListeners = new _StateListeners2.default(web3, loan);
 
-      // await loan.stateListeners.refresh();
+      await loan.stateListeners.refresh();
 
       return loan;
     }
