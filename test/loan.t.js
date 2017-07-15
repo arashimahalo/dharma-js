@@ -9,6 +9,7 @@ import TestLoans from './util/TestLoans.js';
 import {LoanCreated, LoanTermBegin, LoanBidsRejected, PeriodicRepayment,
           ValueRedeemed} from './util/LoanEvents';
 import {generateTestBids} from './util/BidUtils';
+import Constants from '../src/Constants.js';
 import sinon from 'sinon';
 
 describe('Loan', () => {
@@ -249,7 +250,7 @@ describe('Loan', () => {
           expect().fail('should throw error')
         } catch (err) {
           expect(err.toString())
-            .to.contain('cannot be withdrawn during the auction period.');
+            .to.contain('once the loan has been accepted or rejected.');
         }
       })
     })
@@ -265,7 +266,7 @@ describe('Loan', () => {
           expect().fail('should throw error')
         } catch (err) {
           expect(err.toString())
-            .to.contain('cannot be withdrawn during the review period.');
+            .to.contain('once the loan has been accepted or rejected.');
         }
       })
 
@@ -505,29 +506,4 @@ describe('Loan', () => {
       await loan.redeemValue(ACCOUNTS[2], { from: ACCOUNTS[2] })
     })
   })
-
-  // describe('state listeners', () => {
-  //   let loan;
-  //
-  //   before(async () => {
-  //     loan = await Loan.create(web3, TestLoans.LoanDataUnsigned(ACCOUNTS));
-  //     await loan.signAttestation();
-  //   })
-  //
-  //   describe('NULL_STATE', () => {
-  //     // NO LISTENERS IN NULL_STATE
-  //   })
-  //
-  //   describe('AUCTION_STATE', () => {
-  //     before(async () => {
-  //       await loan.broadcast();
-  //     })
-  //
-  //     it("should set state to REVIEW when state transitions to review", async () => {
-  //       expect(loan.state).to.be(Constants.AUCTION_STATE);
-  //       await util.setTimeForward(30);
-  //       expect(loan.state).to.be(Constants.REVIEW_STATE);
-  //     })
-  //   })
-  // })
 })

@@ -109,25 +109,6 @@ var Loan = function (_RedeemableERC) {
     }
   }, {
     key: 'refreshState',
-
-
-    // async refreshState() {
-    //   switch (state) {
-    //     case AUCTION_STATE:
-    //       await this.setupAuctionStateListeners(investment);
-    //       break;
-    //     case REVIEW_STATE:
-    //       await this.setupReviewStateListeners(investment);
-    //       break;
-    //     case ACCEPTED_STATE:
-    //       await this.refreshAcceptedState(investment);
-    //       break;
-    //     case REJECTED_STATE:
-    //       await this.refreshRejectedState(investment);
-    //       break;
-    //   }
-    // }
-
     value: async function refreshState() {
       var _this = this;
       return new Promise(async function (resolve, reject) {
@@ -217,6 +198,12 @@ var Loan = function (_RedeemableERC) {
 
       if (!totalBidValueAccepted.equals(this.principal.plus(this.attestorFee))) throw new Error('Total value of bids accepted should equal the desired ' + "principal, plus the attestor's fee");
 
+      var state = await this.getState(true);
+
+      if (!state.equals(_Constants2.default.REVIEW_STATE)) {
+        throw new Error('Bids can only be accepted during the review period.');
+      }
+
       return await contract.acceptBids(this.uuid, bids.map(function (bid) {
         return bid.bidder;
       }), bids.map(function (bid) {
@@ -234,16 +221,9 @@ var Loan = function (_RedeemableERC) {
         options.gas = UNDEFINED_GAS_ALLOWANCE;
       }
 
-      var auctionPeriodEndBlock = await contract.getAuctionEndBlock.call(this.uuid);
-      var reviewPeriodEndBlock = await contract.getReviewPeriodEndBlock.call(this.uuid);
-      var latestBlockNumber = await _Util2.default.getLatestBlockNumber(this.web3);
-      var state = await contract.getState.call(this.uuid);
+      var state = await this.getState(true);
 
-      if (state.equals(_Constants2.default.AUCTION_STATE)) {
-        if (latestBlockNumber < auctionPeriodEndBlock) throw new Error('Bids can only be rejected during the review period.');
-      } else if (state.equals(_Constants2.default.REVIEW_STATE)) {
-        if (latestBlockNumber >= reviewPeriodEndBlock) throw new Error('Bids can only be rejected during the review period.');
-      } else {
+      if (!state.equals(_Constants2.default.REVIEW_STATE)) {
         throw new Error('Bids can only be rejected during the review period.');
       }
 
@@ -252,9 +232,16 @@ var Loan = function (_RedeemableERC) {
   }, {
     key: 'getState',
     value: async function getState() {
+      var nextBlock = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
       var contract = await _LoanContract2.default.instantiate(this.web3);
 
-      return await contract.getState.call(this.uuid);
+      var blockNumber = 'latest';
+      if (nextBlock) {
+        blockNumber = this.web3.eth.blockNumber + 1;
+      }
+
+      return await contract.getState.call(this.uuid, blockNumber);
     }
   }, {
     key: 'getInterestRate',
@@ -272,7 +259,7 @@ var Loan = function (_RedeemableERC) {
 
       options.value = amount;
 
-      var state = await contract.getState.call(this.uuid);
+      var state = await this.getState(true);
 
       if (!state.equals(_Constants2.default.ACCEPTED_STATE)) throw new Error('Repayments cannot be made until loan term has begun.');
 
@@ -285,17 +272,10 @@ var Loan = function (_RedeemableERC) {
 
       options = options || { from: this.web3.eth.defaultAccount };
 
-      var auctionPeriodEndBlock = await contract.getAuctionEndBlock.call(this.uuid);
-      var reviewPeriodEndBlock = await contract.getReviewPeriodEndBlock.call(this.uuid);
-      var latestBlockNumber = await _Util2.default.getLatestBlockNumber(this.web3);
-      var state = await contract.getState.call(this.uuid);
+      var state = await this.getState(true);
 
-      if (!state.equals(_Constants2.default.ACCEPTED_STATE) && !state.equals(_Constants2.default.REJECTED_STATE)) {
-        if (latestBlockNumber < auctionPeriodEndBlock) {
-          throw new Error('Bids cannot be withdrawn during the auction period.');
-        } else if (latestBlockNumber < reviewPeriodEndBlock) {
-          throw new Error('Bids cannot be withdrawn during the review period.');
-        }
+      if (!state.equals(_Constants2.default.REJECTED_STATE) && !state.equals(_Constants2.default.ACCEPTED_STATE)) {
+        throw new Error('Bids can only be withdrawn once the loan has been ' + 'accepted or rejected.');
       }
 
       return contract.withdrawInvestment(this.uuid, options);
@@ -358,6 +338,9 @@ var Loan = function (_RedeemableERC) {
 
       loan.events = new _Events2.default(web3, { uuid: loan.uuid });
       loan.servicing = new _Servicing2.default(loan);
+      // loan.stateListeners = new StateListeners(loan);
+
+      // await loan.stateListners.refresh();
 
       return loan;
     }
