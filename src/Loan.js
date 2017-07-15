@@ -112,36 +112,6 @@ var Loan = function (_RedeemableERC) {
       return contract.createLoan(this.uuid, this.borrower, this.principal, this.terms.toByteString(), this.attestor, this.attestorFee, this.defaultRisk, this.signature.r, this.signature.s, this.signature.v, this.auctionPeriodLength, this.reviewPeriodLength, options);
     }
   }, {
-    key: 'refreshState',
-    value: async function refreshState() {
-      var _this = this;
-      return new Promise(async function (resolve, reject) {
-        _this.state = await _this.getState();
-        if (_this.state.equals(ACCEPTED_STATE)) {
-          _this.interestRate = await _this.getInterestRate();
-          var termBegin = await _this.events.termBegin();
-          termBegin.get(function (err, logs) {
-            if (err) {
-              reject(err);
-            } else {
-              var termBeginEvent = logs[0];
-              _this.termBeginBlockNumber = termBeginEvent.blockNumber;
-              _this.web3.eth.getBlock(_this.termBeginBlockNumber, function (err, block) {
-                if (err) {
-                  reject(err);
-                } else {
-                  _this.termBeginTimestamp = block.timestamp;
-                  resolve();
-                }
-              });
-            }
-          });
-        } else {
-          resolve();
-        }
-      });
-    }
-  }, {
     key: 'bid',
     value: async function bid(amount, tokenRecipient, minInterestRate, options) {
       var contract = await _LoanContract2.default.instantiate(this.web3);
@@ -160,14 +130,14 @@ var Loan = function (_RedeemableERC) {
   }, {
     key: 'getBids',
     value: async function getBids() {
-      var _this3 = this;
+      var _this2 = this;
 
       var contract = await _LoanContract2.default.instantiate(this.web3);
 
       var numBids = await contract.getNumBids.call(this.uuid);
 
       var bids = await Promise.all(_lodash2.default.range(numBids).map(async function (index) {
-        var bid = await contract.getBid.call(_this3.uuid, index);
+        var bid = await contract.getBid.call(_this2.uuid, index);
         return {
           bidder: bid[0],
           amount: bid[1],
@@ -202,7 +172,9 @@ var Loan = function (_RedeemableERC) {
 
       if (!totalBidValueAccepted.equals(this.principal.plus(this.attestorFee))) throw new Error('Total value of bids accepted should equal the desired ' + "principal, plus the attestor's fee");
 
+      console.log("right here");
       var state = await this.getState(true);
+      console.log("almost made it");
 
       if (!state.equals(_Constants2.default.REVIEW_STATE)) {
         throw new Error('Bids can only be accepted during the review period.');
@@ -242,7 +214,8 @@ var Loan = function (_RedeemableERC) {
 
       var blockNumber = 'latest';
       if (nextBlock) {
-        blockNumber = this.web3.eth.blockNumber + 1;
+        blockNumber = await _Util2.default.getLatestBlockNumber(this.web3);
+        blockNumber += 1;
       }
 
       return await contract.getState.call(this.uuid, blockNumber);
@@ -344,7 +317,7 @@ var Loan = function (_RedeemableERC) {
       loan.servicing = new _Servicing2.default(loan);
       loan.stateListeners = new _StateListeners2.default(web3, loan);
 
-      await loan.stateListeners.refresh();
+      // await loan.stateListeners.refresh();
 
       return loan;
     }
