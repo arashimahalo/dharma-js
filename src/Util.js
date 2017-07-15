@@ -43,6 +43,17 @@ var Util = function () {
         });
       });
     }
+  }, {
+    key: 'getBlock',
+    value: async function getBlock(web3, blockNumber) {
+      return new Promise(function (accept, reject) {
+        web3.eth.getBlock(blockNumber, function (err, block) {
+          if (err) reject(err);else {
+            accept(block);
+          }
+        });
+      });
+    }
   }]);
 
   return Util;

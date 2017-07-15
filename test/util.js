@@ -84,6 +84,12 @@ class Util {
       })
     });
   }
+
+  async pause(seconds) {
+    return new Promise(function(resolve, reject) {
+      setTimeout(() => { resolve() }, seconds*1000);
+    });
+  }
 }
 
 module.exports = Util;

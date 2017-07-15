@@ -34,16 +34,17 @@ var AuctionCompleted = function () {
 
       this.blockListener = this.web3.eth.filter('latest');
       this.blockListener.watch(function (err, result) {
-
         if (err) {
           this.listening = false;
           callback(err, null);
         } else {
           web3.eth.getBlockNumber(function (err, blockNumber) {
+
             if (!this.listening) return;
 
             if (auctionPeriodEndBlock.lt(blockNumber)) {
               this.listening = false;
+
               callback(null, blockNumber);
             }
           }.bind(this));

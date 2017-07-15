@@ -50,6 +50,10 @@ var _Servicing = require('./Servicing');
 
 var _Servicing2 = _interopRequireDefault(_Servicing);
 
+var _StateListeners = require('./StateListeners');
+
+var _StateListeners2 = _interopRequireDefault(_StateListeners);
+
 var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
@@ -113,7 +117,7 @@ var Loan = function (_RedeemableERC) {
       var _this = this;
       return new Promise(async function (resolve, reject) {
         _this.state = await _this.getState();
-        if (_this.state.equals(_Constants2.default.ACCEPTED_STATE)) {
+        if (_this.state.equals(ACCEPTED_STATE)) {
           _this.interestRate = await _this.getInterestRate();
           var termBegin = await _this.events.termBegin();
           termBegin.get(function (err, logs) {
@@ -338,9 +342,9 @@ var Loan = function (_RedeemableERC) {
 
       loan.events = new _Events2.default(web3, { uuid: loan.uuid });
       loan.servicing = new _Servicing2.default(loan);
-      // loan.stateListeners = new StateListeners(loan);
+      loan.stateListeners = new _StateListeners2.default(web3, loan);
 
-      // await loan.stateListners.refresh();
+      await loan.stateListeners.refresh();
 
       return loan;
     }
