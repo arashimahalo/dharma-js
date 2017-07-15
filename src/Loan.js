@@ -172,9 +172,7 @@ var Loan = function (_RedeemableERC) {
 
       if (!totalBidValueAccepted.equals(this.principal.plus(this.attestorFee))) throw new Error('Total value of bids accepted should equal the desired ' + "principal, plus the attestor's fee");
 
-      console.log("right here");
       var state = await this.getState(true);
-      console.log("almost made it");
 
       if (!state.equals(_Constants2.default.REVIEW_STATE)) {
         throw new Error('Bids can only be accepted during the review period.');
