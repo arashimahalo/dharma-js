@@ -53,6 +53,7 @@ class TestLoans {
     const loan = await Loan.create(web3, TestLoans.LoanDataUnsigned(accounts, options))
     await loan.signAttestation();
     await loan.broadcast();
+    await loan.stateListeners.refresh();
     return loan;
   }
 
@@ -64,6 +65,8 @@ class TestLoans {
       await loan.bid(bid.amount, bid.bidder, bid.minInterestRate, { from: bid.bidder })
     }
     await util.setBlockNumberForward(20);
+    await loan.stateListeners.refresh();
+
     return loan;
   }
 
@@ -75,12 +78,16 @@ class TestLoans {
         amount: web3.toWei(0.2002, 'ether')
       }
     }), { from: loan.borrower })
+    await loan.stateListeners.refresh();
+
     return loan;
   }
 
   static async LoanInRejectedState(accounts, options={}) {
     const loan = await TestLoans.LoanInReviewState(accounts, options);
     await loan.rejectBids({ from: accounts[0] })
+    await loan.stateListeners.refresh();
+
     return loan;
   }
 }

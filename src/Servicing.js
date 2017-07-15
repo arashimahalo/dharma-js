@@ -10,6 +10,10 @@ var _moment = require('moment');
 
 var _moment2 = _interopRequireDefault(_moment);
 
+var _Constants = require('./Constants');
+
+var _Constants2 = _interopRequireDefault(_Constants);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -24,7 +28,7 @@ var Servicing = function () {
   _createClass(Servicing, [{
     key: 'expectedAmountRepaidByDate',
     value: function expectedAmountRepaidByDate(date) {
-      if (!this.loan.termBeginTimestamp) throw new Error('Loan must be in ACCEPTED state and refreshState() must' + ' be called before servicing utilities can be accessed');
+      if (!this.loan.state.equals(_Constants2.default.ACCEPTED_STATE)) throw new Error('Loan must be in ACCEPTED state before servicing ' + 'utilities can be accessed');
 
       var expectedPeriodicRepayment = this.periodicRepaymentOwed();
 

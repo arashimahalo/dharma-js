@@ -24,12 +24,12 @@ describe('Servicing', () => {
           }
         })
 
-        await loan.refreshState()
+        await util.pause(3)
 
         date = new Date();
 
         const decimals = web3.toWei(1, 'ether');
-        let interestRate = await loan.getInterestRate();
+        let interestRate = loan.interestRate
         interestRate = interestRate.div(decimals).plus(1);
 
         const principal = loan.principal;
@@ -72,12 +72,12 @@ describe('Servicing', () => {
           }
         })
 
-        await loan.refreshState()
+        await util.pause(3)
 
         date = new Date();
 
         const decimals = web3.toWei(1, 'ether');
-        let interestRate = await loan.getInterestRate();
+        let interestRate = loan.interestRate;
         interestRate = interestRate.div(decimals).plus(1);
 
         const principal = loan.principal;
@@ -133,7 +133,7 @@ describe('Servicing', () => {
           }
         })
 
-        await loan.refreshState()
+        await util.pause(3)
 
         date = new Date();
 
@@ -180,7 +180,7 @@ describe('Servicing', () => {
           }
         })
 
-        await loan.refreshState()
+        await util.pause(3)
 
         date = new Date();
 
@@ -231,7 +231,7 @@ describe('Servicing', () => {
         }
       })
 
-      await loan.refreshState()
+      await util.pause(3)
 
       date = new Date();
 

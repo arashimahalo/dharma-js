@@ -120,7 +120,6 @@ var StateListeners = function () {
           _this.loan.termBeginTimestamp = termBeginBlock.timestamp;
 
           _this.loan.interestRate = await _this.loan.getInterestRate();
-
           await _this.refresh();
         });
         _this.listeners['bidsRejected'].stopWatching(function () {});
