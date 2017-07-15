@@ -109,6 +109,25 @@ var Loan = function (_RedeemableERC) {
     }
   }, {
     key: 'refreshState',
+
+
+    // async refreshState() {
+    //   switch (state) {
+    //     case AUCTION_STATE:
+    //       await this.setupAuctionStateListeners(investment);
+    //       break;
+    //     case REVIEW_STATE:
+    //       await this.setupReviewStateListeners(investment);
+    //       break;
+    //     case ACCEPTED_STATE:
+    //       await this.refreshAcceptedState(investment);
+    //       break;
+    //     case REJECTED_STATE:
+    //       await this.refreshRejectedState(investment);
+    //       break;
+    //   }
+    // }
+
     value: async function refreshState() {
       var _this = this;
       return new Promise(async function (resolve, reject) {
@@ -339,8 +358,6 @@ var Loan = function (_RedeemableERC) {
 
       loan.events = new _Events2.default(web3, { uuid: loan.uuid });
       loan.servicing = new _Servicing2.default(loan);
-
-      await loan.refreshState();
 
       return loan;
     }

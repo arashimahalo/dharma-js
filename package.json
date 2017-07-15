@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "compile": "babel --presets es2015 lib/ --out-dir src/",
-    "test": "ENV=test npm run compile && mocha --require babel-register --timeout 5000 test/servicing.t.js "
+    "test": "ENV=test npm run compile && mocha --require babel-register --timeout 5000 test/loan.t.js "
   },
   "repository": {
     "type": "git",

@@ -1,8 +1,9 @@
 "use strict";
 
 module.exports = {
-  AUCTION_STATE: 0,
-  REVIEW_STATE: 1,
-  ACCEPTED_STATE: 2,
-  REJECTED_STATE: 3
+  NULL_STATE: 0,
+  AUCTION_STATE: 1,
+  REVIEW_STATE: 2,
+  ACCEPTED_STATE: 3,
+  REJECTED_STATE: 4
 };
