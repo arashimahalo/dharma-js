@@ -260,6 +260,19 @@ describe('Servicing', () => {
       })
     });
 
+    describe('current', () => {
+      beforeEach(async () => {
+        const date = moment().add(10, 'days').toDate();
+        MockDate.set(date);
+        await loan.repay(amountOwed.div(2));
+      })
+
+      it ('should classify the loan as CURRENT', async () => {
+        const status = await loan.servicing.getRepaymentStatus();
+        expect(status).to.be('CURRENT');
+      })
+    })
+
     describe('delinquent in part', () => {
       beforeEach(async () => {
         const date = moment().add(20, 'days').toDate();

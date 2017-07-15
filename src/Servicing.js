@@ -39,7 +39,12 @@ var Servicing = function () {
       var expectedAmountRepaid = this.expectedAmountRepaidByDate(new Date());
 
       if (amountRepaid.gte(expectedAmountRepaid)) {
-        return 'REPAID';
+        var durationSinceTermBegin = _moment2.default.duration((0, _moment2.default)().diff(this.loan.termBeginTimestamp * 1000));
+        if (durationSinceTermBegin < this.termDuration()) {
+          return 'CURRENT';
+        } else {
+          return 'REPAID';
+        }
       } else {
         var numPeriodsRepaid = amountRepaid.div(this.periodicRepaymentOwed()).floor().toNumber();
         var lastRepaymentDateMissed = (0, _moment2.default)(this.loan.termBeginTimestamp * 1000).add(this.periodDuration(numPeriodsRepaid + 1));
@@ -87,6 +92,11 @@ var Servicing = function () {
           return _moment2.default.duration(numPeriods * this.loan.terms.periodLength(), 'years');
           break;
       }
+    }
+  }, {
+    key: 'termDuration',
+    value: function termDuration() {
+      return this.periodDuration(this.loan.terms.termLength());
     }
   }, {
     key: '_numPeriodsBetween',
