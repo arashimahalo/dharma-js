@@ -16,16 +16,28 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var Terms = function () {
   function Terms(web3, terms) {
+    var _this = this;
+
     _classCallCheck(this, Terms);
 
     this.web3 = web3;
     this.terms = terms;
+
+    var _loop = function _loop(term) {
+      _this[term] = function () {
+        return _this.terms[term];
+      };
+    };
+
+    for (var term in terms) {
+      _loop(term);
+    }
   }
 
   _createClass(Terms, [{
     key: 'equals',
-    value: function equals(terms) {
-      return _lodash2.default.isEqual(terms, this.terms);
+    value: function equals(termsObj) {
+      return _lodash2.default.isEqual(termsObj.terms, this.terms);
     }
   }, {
     key: 'toByteString',
@@ -45,6 +57,11 @@ var Terms = function () {
       return '0x' + version + periodType + periodLength + termLength + compounded;
     }
   }, {
+    key: 'toJson',
+    value: function toJson() {
+      return this.terms;
+    }
+  }, {
     key: 'getPeriodTypeValue',
     value: function getPeriodTypeValue() {
       var periodTypes = {
@@ -60,7 +77,6 @@ var Terms = function () {
   }], [{
     key: 'byteStringToJson',
     value: function byteStringToJson(web3, byteString) {
-      console.log(byteString);
       var data = _Util2.default.stripZeroEx(byteString);
 
       var terms = {

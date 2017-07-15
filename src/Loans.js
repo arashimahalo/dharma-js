@@ -66,7 +66,7 @@ var Loans = function () {
       var signature = await contract.getAttestorSignature.call(uuid);
       loanData.signature = _Attestation2.default.fromSignatureData(this.web3, signature);
 
-      var loanCreated = await this.events.created({ uuid: uuid });
+      var loanCreated = await this.events.created({ uuid: uuid }, { fromBlock: 0, toBlock: 'latest' });
       var loanCreatedEvents = await new Promise(function (accept, reject) {
         loanCreated.get(function (err, loanCreatedEvents) {
           if (err) reject(err);else accept(loanCreatedEvents);

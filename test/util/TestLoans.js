@@ -4,8 +4,8 @@ import Loan from '../../src/Loan';
 import {generateTestBids} from './BidUtils';
 
 class TestLoans {
-  static LoanDataUnsigned(accounts) {
-    return {
+  static LoanDataUnsigned(accounts, options={}) {
+    let loanData = {
       uuid: web3.sha3(uuidV4()),
       borrower: accounts[0],
       attestor: accounts[1],
@@ -22,6 +22,12 @@ class TestLoans {
       auctionPeriodLength: 20,
       reviewPeriodLength: 40
     }
+
+    for (let key in options) {
+      loanData[key] = options[key]
+    }
+
+    return loanData;
   }
 
   static LoanDataMalformed(accounts) {
@@ -43,15 +49,15 @@ class TestLoans {
     }
   }
 
-  static async LoanInAuctionState(accounts) {
-    const loan = await Loan.create(web3, TestLoans.LoanDataUnsigned(accounts))
+  static async LoanInAuctionState(accounts, options={}) {
+    const loan = await Loan.create(web3, TestLoans.LoanDataUnsigned(accounts, options))
     await loan.signAttestation();
     await loan.broadcast();
     return loan;
   }
 
-  static async LoanInReviewState(accounts) {
-    const loan = await TestLoans.LoanInAuctionState(accounts);
+  static async LoanInReviewState(accounts, options={}) {
+    const loan = await TestLoans.LoanInAuctionState(accounts, options);
     const bids = generateTestBids(web3, accounts.slice(2,10), 0.25, 0.5);
     for (let i = 0; i < bids.length; i++) {
       const bid = bids[i];
@@ -61,8 +67,8 @@ class TestLoans {
     return loan;
   }
 
-  static async LoanInAcceptedState(accounts) {
-    const loan = await TestLoans.LoanInReviewState(accounts);
+  static async LoanInAcceptedState(accounts, options={}) {
+    const loan = await TestLoans.LoanInReviewState(accounts, options);
     await loan.acceptBids(accounts.slice(2,7).map((account) => {
       return {
         bidder: account,
@@ -72,8 +78,8 @@ class TestLoans {
     return loan;
   }
 
-  static async LoanInRejectedState(accounts) {
-    const loan = await TestLoans.LoanInReviewState(accounts);
+  static async LoanInRejectedState(accounts, options={}) {
+    const loan = await TestLoans.LoanInReviewState(accounts, options);
     await loan.rejectBids({ from: accounts[0] })
     return loan;
   }

@@ -37,7 +37,7 @@ var RedeemableERC20 = function () {
     value: async function redeemValue(recipient, options) {
       var contract = await LoanContract.instantiate(this.web3);
 
-      options = options || { from: this.web3.eth.defaultAccount };
+      options = options || { from: recipient };
 
       return contract.redeemValue(this.uuid, recipient, options);
     }

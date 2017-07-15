@@ -10,6 +10,10 @@ var _AuctionCompleted = require('./AuctionCompleted');
 
 var _AuctionCompleted2 = _interopRequireDefault(_AuctionCompleted);
 
+var _ReviewPeriodCompleted = require('./ReviewPeriodCompleted');
+
+var _ReviewPeriodCompleted2 = _interopRequireDefault(_ReviewPeriodCompleted);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -35,8 +39,8 @@ var Events = function () {
     this.events = {};
 
     var _loop = function _loop(eventName) {
-      _this[eventName] = async function (options, callback) {
-        return await _this.getEvent(EVENTS[eventName], options, callback);
+      _this[eventName] = async function (filter, additionalFilter, callback) {
+        return await _this.getEvent(EVENTS[eventName], filter, additionalFilter, callback);
       };
     };
 
@@ -47,17 +51,30 @@ var Events = function () {
     this.auctionCompleted = async function (callback) {
       return await _AuctionCompleted2.default.create(web3, defaultOptions, callback);
     };
+
+    this.reviewPeriodCompleted = async function (callback) {
+      return await _ReviewPeriodCompleted2.default.create(web3, defaultOptions, callback);
+    };
   }
 
   _createClass(Events, [{
     key: 'getEvent',
-    value: async function getEvent(eventName, options, callback) {
+    value: async function getEvent(eventName, filter, additionalFilter, callback) {
       var contract = await _LoanContract2.default.instantiate(this.web3);
 
-      options = options || {};
-      Object.assign(options, this.defaultOptions);
+      if (arguments.length === 2 && typeof filter === 'function') {
+        callback = filter;
+        filter = {};
+      } else if (arguments.length === 3 && typeof additionalFilter === 'function') {
+        callback = additionalFilter;
+        additionalFilter = {};
+      }
 
-      var contractEvent = contract[eventName](options);
+      filter = filter || this.defaultOptions;
+
+      Object.assign(filter, this.defaultOptions);
+
+      var contractEvent = contract[eventName](filter, additionalFilter);
 
       if (callback) {
         contractEvent.watch(callback);

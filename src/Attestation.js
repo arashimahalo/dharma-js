@@ -41,8 +41,6 @@ var Attestation = function () {
       var web3 = this.web3;
       var attestor = this.attestor;
 
-      var isTestRpc = await _Util2.default.isTestRpc(web3);
-
       var data = web3.toHex((0, _jsonStableStringify2.default)(this.data));
 
       return await new Promise(function (accept, reject) {
@@ -63,7 +61,7 @@ var Attestation = function () {
     }
   }, {
     key: 'verifySignature',
-    value: async function verifySignature(signature) {
+    value: function verifySignature(signature) {
       var web3 = this.web3;
 
       var r = _ethereumjsUtil2.default.toBuffer(signature.r);
@@ -71,8 +69,6 @@ var Attestation = function () {
       var v = this.web3.toDecimal(signature.v);
 
       if (v < 27) v += 27;
-
-      var isTestRpc = await _Util2.default.isTestRpc(web3);
 
       var dataBuffer = _ethereumjsUtil2.default.toBuffer((0, _jsonStableStringify2.default)(this.data));
       var encodedMessage = _ethereumjsUtil2.default.hashPersonalMessage(dataBuffer);

@@ -398,6 +398,23 @@ describe('Loan', () => {
         await loanOfInterest.events.auctionCompleted();
       auctionCompletedEvent.watch(callback)
 
+      await util.setBlockNumberForward(40);
+
+      await new Promise((resolve) => {
+        setTimeout(() => {
+          expect(callback.called).to.be(true);
+          resolve();
+        }, 5000);
+      })
+    })
+
+    it('should callback on ReveiwPeriodCompleted event', async () => {
+      let callback = sinon.spy();
+
+      const reviewPeriodCompletedEvent =
+        await loanOfInterest.events.reviewPeriodCompleted();
+      reviewPeriodCompletedEvent.watch(callback)
+
       await util.setBlockNumberForward(25);
 
       await new Promise((resolve) => {
