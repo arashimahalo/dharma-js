@@ -51,8 +51,6 @@ class TestLoans {
 
   static async LoanInAuctionState(accounts, options={}, awaitMining=true) {
     const loan = await Loan.create(web3, TestLoans.LoanDataUnsigned(accounts, options))
-    await loan.signAttestation();
-    await loan.broadcast();
 
     if (awaitMining) {
       return new Promise(async function(resolve, reject) {
@@ -62,8 +60,13 @@ class TestLoans {
             resolve(loan);
           })
         })
+
+        await loan.signAttestation();
+        await loan.broadcast();
       });
     } else {
+      await loan.signAttestation();
+      await loan.broadcast();
       return loan;
     }
   }
@@ -92,12 +95,6 @@ class TestLoans {
 
   static async LoanInAcceptedState(accounts, options={}, awaitMining=true) {
     const loan = await TestLoans.LoanInReviewState(accounts, options);
-    const result = await loan.acceptBids(accounts.slice(2,7).map((account) => {
-      return {
-        bidder: account,
-        amount: web3.toWei(0.2002, 'ether')
-      }
-    }))
 
     if (awaitMining) {
       return new Promise(async function(resolve, reject) {
@@ -107,15 +104,27 @@ class TestLoans {
             resolve(loan);
           })
         })
+
+        await loan.acceptBids(accounts.slice(2,7).map((account) => {
+          return {
+            bidder: account,
+            amount: web3.toWei(0.2002, 'ether')
+          }
+        }))
       });
     } else {
+      await loan.acceptBids(accounts.slice(2,7).map((account) => {
+        return {
+          bidder: account,
+          amount: web3.toWei(0.2002, 'ether')
+        }
+      }))
       return loan;
     }
   }
 
   static async LoanInRejectedState(accounts, options={}, awaitMining=true) {
     const loan = await TestLoans.LoanInReviewState(accounts, options);
-    await loan.rejectBids({ from: accounts[0] })
 
     if (awaitMining) {
       return new Promise(async function(resolve, reject) {
@@ -125,8 +134,11 @@ class TestLoans {
             resolve(loan);
           })
         })
+
+        await loan.rejectBids({ from: accounts[0] })
       });
     } else {
+      await loan.rejectBids({ from: accounts[0] })
       return loan;
     }
   }

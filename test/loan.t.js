@@ -63,15 +63,14 @@ describe('Loan', () => {
 
   describe('#broadcast()', function() {
     it("should successfuly broadcast a loan creation request", function(done) {
-      loan.broadcast({ from: ACCOUNTS[0] }).then((result) => {
-        return loan.events.created();
-      }).then((event) => {
+      loan.events.created().then((event) => {
         event.watch(() => {
           event.stopWatching(() => {
             done()
           })
         })
-      });
+        return loan.broadcast({ from: ACCOUNTS[0] });
+      })
     })
 
     it("should return error when broadcasting a loan request that already exists", async function() {
