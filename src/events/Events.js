@@ -14,6 +14,10 @@ var _ReviewPeriodCompleted = require('./ReviewPeriodCompleted');
 
 var _ReviewPeriodCompleted2 = _interopRequireDefault(_ReviewPeriodCompleted);
 
+var _EventWrapper = require('./EventWrapper');
+
+var _EventWrapper2 = _interopRequireDefault(_EventWrapper);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -49,11 +53,31 @@ var Events = function () {
     }
 
     this.auctionCompleted = async function (callback) {
-      return await _AuctionCompleted2.default.create(web3, defaultOptions, callback);
+      var identifier = _EventWrapper2.default.getIdentifier('AuctionCompleted', defaultOptions, {});
+
+      if (identifier in _this.events) {
+        var event = _this.events[identifier];
+        if (callback) {
+          event.watch(callback);
+        }
+        return event;
+      } else {
+        return await _AuctionCompleted2.default.create(web3, defaultOptions, callback);
+      }
     };
 
     this.reviewPeriodCompleted = async function (callback) {
-      return await _ReviewPeriodCompleted2.default.create(web3, defaultOptions, callback);
+      var identifier = _EventWrapper2.default.getIdentifier('ReviewPeriodCompleted', defaultOptions, {});
+
+      if (identifier in _this.events) {
+        var event = _this.events[identifier];
+        if (callback) {
+          event.watch(callback);
+        }
+        return event;
+      } else {
+        return await _ReviewPeriodCompleted2.default.create(web3, defaultOptions, callback);
+      }
     };
   }
 
@@ -74,12 +98,20 @@ var Events = function () {
 
       Object.assign(filter, this.defaultOptions);
 
-      var contractEvent = contract[eventName](filter, additionalFilter);
+      var eventIdentifier = _EventWrapper2.default.getIdentifier(eventName, filter, additionalFilter);
 
-      if (callback) {
-        contractEvent.watch(callback);
+      if (eventIdentifier in this.events) {
+        var event = this.events[eventIdentifier];
+        if (callback) {
+          event.watch(callback);
+          return event;
+        } else {
+          return event;
+        }
       } else {
-        return contractEvent;
+        var _event = contract[eventName](filter, additionalFilter);
+        this.events[eventIdentifier] = new _EventWrapper2.default(_event, callback);
+        return _event;
       }
     }
   }]);

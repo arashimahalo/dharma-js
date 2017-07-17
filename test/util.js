@@ -3,7 +3,7 @@ const expect = require('expect.js');
 class Util {
   constructor(web3) {
     this.web3 = web3;
-    this.gasPrice = web3.toBigNumber('1');
+    this.gasPrice = web3.eth.gasPrice;
   }
 
   setTimeForward(timeDiff) {

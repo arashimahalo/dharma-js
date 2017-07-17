@@ -32,9 +32,27 @@ var Servicing = function () {
 
       var expectedPeriodicRepayment = this.periodicRepaymentOwed();
 
+      var numRepaymentPeriods = this._numRepaymentPeriods(date);
+
+      return expectedPeriodicRepayment.times(numRepaymentPeriods);
+    }
+  }, {
+    key: 'getInterestEarnedToDate',
+    value: async function getInterestEarnedToDate() {
+      var amountRepaid = await this.loan.amountRepaid();
+      var decimals = 10 ** 18;
+
+      var interestRate = this.loan.interestRate;
+      interestRate = interestRate.div(decimals);
+
+      return amountRepaid.times(interestRate).div(interestRate.plus(1));
+    }
+  }, {
+    key: '_numRepaymentPeriods',
+    value: function _numRepaymentPeriods(date) {
       var termBeginDate = new Date(this.loan.termBeginTimestamp * 1000);
       var numPeriods = this._numPeriodsBetween(termBeginDate, date, this.loan.terms.periodType(), this.loan.terms.periodLength());
-      return expectedPeriodicRepayment.times(numPeriods);
+      return _bignumber2.default.min(numPeriods, this.loan.terms.termLength());
     }
   }, {
     key: 'getRepaymentStatus',

@@ -30,7 +30,7 @@ describe('ERC20', function() {
         await loan.transfer(400, ACCOUNTS[4], { from: ACCOUNTS[4] })
         expect().fail("should throw error");
       } catch (err) {
-        util.assertThrowMessage(err);
+        expect(err.toString()).to.contain("account balance is not high enough")
       }
     })
   })
@@ -56,7 +56,7 @@ describe('ERC20', function() {
         await loan.transferFrom(ACCOUNTS[2], ACCOUNTS[5], 100, { from: ACCOUNTS[5] });
         expect().fail("should throw error");
       } catch (err) {
-        util.assertThrowMessage(err);
+        expect(err.toString()).to.contain("is not high enough to transfer");
       }
     })
   })

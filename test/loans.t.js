@@ -71,7 +71,6 @@ describe('Loans', function() {
   })
 
   describe('#events', function() {
-    this.timeout(10000)
     let loan;
 
     before(async () => {

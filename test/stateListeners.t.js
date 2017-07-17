@@ -9,7 +9,9 @@ describe('StateListeners', () => {
   let loan;
 
   beforeEach(async () => {
-    loan = await Loan.create(web3, TestLoans.LoanDataUnsigned(ACCOUNTS));
+    loan = await Loan.create(web3, TestLoans.LoanDataUnsigned(ACCOUNTS, {
+      auctionPeriodLength: 4
+    }));
     await loan.signAttestation();
   })
 
@@ -26,7 +28,6 @@ describe('StateListeners', () => {
     it("should set state to REVIEW when state transitions to review", async () => {
       expect(loan.state.equals(AUCTION_STATE)).to.be(true);
 
-      await util.setBlockNumberForward(30);
       await util.pause(4)
 
       expect(loan.state.equals(REVIEW_STATE)).to.be(true);
@@ -35,7 +36,9 @@ describe('StateListeners', () => {
 
   describe('REVIEW_STATE', () => {
     beforeEach(async () => {
-      loan = await TestLoans.LoanInReviewState(ACCOUNTS);
+      loan = await TestLoans.LoanInReviewState(ACCOUNTS, {
+        reviewPeriodLength: 5
+      });
       await util.pause(1)
     })
 
@@ -66,8 +69,7 @@ describe('StateListeners', () => {
 
     describe('ignored', () => {
       it('should set state to REJECTED when bids are ignored', async () => {
-        await util.setBlockNumberForward(50);
-        await util.pause(4)
+        await util.pause(12)
         expect(loan.state.equals(REJECTED_STATE)).to.be(true);
       })
     });

@@ -41,6 +41,8 @@ var StateListeners = function () {
         // case REJECTED_STATE:
         //   await this.refreshRejectedState();
         //   break;
+        default:
+          break;
       }
     }
   }, {
@@ -101,8 +103,10 @@ var StateListeners = function () {
           _this.loan.state = _Constants.REJECTED_STATE;
           await _this.refresh();
         });
-        _this.listeners['termBegin'].stopWatching(function () {});
-        _this.listeners['bidsIgnored'].stopWatching(function () {});
+
+        if ('termBegin' in _this.listeners) _this.listeners['termBegin'].stopWatching(function () {});
+
+        if ('bidsIgnored' in _this.listeners) _this.listeners['bidsIgnored'].stopWatching(function () {});
       };
     }
   }, {
@@ -122,8 +126,10 @@ var StateListeners = function () {
           _this.loan.interestRate = await _this.loan.getInterestRate();
           await _this.refresh();
         });
-        _this.listeners['bidsRejected'].stopWatching(function () {});
-        _this.listeners['bidsIgnored'].stopWatching(function () {});
+
+        if ('bidsRejected' in _this.listeners) _this.listeners['bidsRejected'].stopWatching(function () {});
+
+        if ('bidsIgnored' in _this.listeners) _this.listeners['bidsIgnored'].stopWatching(function () {});
       };
     }
   }, {
@@ -136,8 +142,10 @@ var StateListeners = function () {
           _this.loan.state = _Constants.REJECTED_STATE;
           await _this.refresh();
         });
-        _this.listeners['termBegin'].stopWatching(function () {});
-        _this.listeners['bidsRejected'].stopWatching(function () {});
+
+        if ('termBegin' in _this.listeners) _this.listeners['termBegin'].stopWatching(function () {});
+
+        if ('bidsRejected' in _this.listeners) _this.listeners['bidsRejected'].stopWatching(function () {});
       };
     }
   }]);

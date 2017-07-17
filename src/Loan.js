@@ -66,7 +66,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var UNDEFINED_GAS_ALLOWANCE = 500000;
+var UNDEFINED_GAS_ALLOWANCE = 1000000;
 
 var Loan = function (_RedeemableERC) {
   _inherits(Loan, _RedeemableERC);
@@ -105,11 +105,24 @@ var Loan = function (_RedeemableERC) {
 
       options = options || { from: this.web3.eth.defaultAccount };
 
+      var loanExists = await this.exists();
+      if (loanExists) {
+        throw new Error('Cannot broadcast loan request -- loan request with ' + 'conflicting UUID already exists.');
+      }
+
       if (typeof options.gas === 'undefined') {
         options.gas = UNDEFINED_GAS_ALLOWANCE;
       }
 
       return contract.createLoan(this.uuid, this.borrower, this.principal, this.terms.toByteString(), this.attestor, this.attestorFee, this.defaultRisk, this.signature.r, this.signature.s, this.signature.v, this.auctionPeriodLength, this.reviewPeriodLength, options);
+    }
+  }, {
+    key: 'exists',
+    value: async function exists() {
+      var contract = await _LoanContract2.default.instantiate(this.web3);
+      var borrower = await contract.getBorrower.call(this.uuid);
+
+      return this.web3.toDecimal(borrower) > 0;
     }
   }, {
     key: 'bid',

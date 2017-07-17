@@ -19,8 +19,8 @@ class TestLoans {
       },
       attestorFee: web3.toWei(0.001, 'ether'),
       defaultRisk: web3.toWei(0.323, 'ether'),
-      auctionPeriodLength: 20,
-      reviewPeriodLength: 40
+      auctionPeriodLength: 5,
+      reviewPeriodLength: 60
     }
 
     for (let key in options) {
@@ -49,46 +49,86 @@ class TestLoans {
     }
   }
 
-  static async LoanInAuctionState(accounts, options={}) {
+  static async LoanInAuctionState(accounts, options={}, awaitMining=true) {
     const loan = await Loan.create(web3, TestLoans.LoanDataUnsigned(accounts, options))
     await loan.signAttestation();
     await loan.broadcast();
-    await loan.stateListeners.refresh();
-    return loan;
+
+    if (awaitMining) {
+      return new Promise(async function(resolve, reject) {
+        const event = await loan.events.created()
+        event.watch((err, result) => {
+          event.stopWatching(() => {
+            resolve(loan);
+          })
+        })
+      });
+    } else {
+      return loan;
+    }
   }
 
-  static async LoanInReviewState(accounts, options={}) {
+  static async LoanInReviewState(accounts, options={}, awaitMining=true) {
     const loan = await TestLoans.LoanInAuctionState(accounts, options);
     const bids = generateTestBids(web3, accounts.slice(2,10), 0.25, 0.5);
-    for (let i = 0; i < bids.length; i++) {
-      const bid = bids[i];
-      await loan.bid(bid.amount, bid.bidder, bid.minInterestRate, { from: bid.bidder })
-    }
-    await util.setBlockNumberForward(20);
-    await loan.stateListeners.refresh();
+    await Promise.all(bids.map((bid) => {
+      return loan.bid(bid.amount, bid.bidder, bid.minInterestRate,
+        { from: bid.bidder })
+    }))
 
-    return loan;
+    if (awaitMining) {
+      return new Promise(async function(resolve, reject) {
+        const event = await loan.events.auctionCompleted()
+        event.watch((err, result) => {
+          event.stopWatching(() => {
+            resolve(loan);
+          })
+        })
+      });
+    } else {
+      return loan;
+    }
   }
 
-  static async LoanInAcceptedState(accounts, options={}) {
+  static async LoanInAcceptedState(accounts, options={}, awaitMining=true) {
     const loan = await TestLoans.LoanInReviewState(accounts, options);
-    await loan.acceptBids(accounts.slice(2,7).map((account) => {
+    const result = await loan.acceptBids(accounts.slice(2,7).map((account) => {
       return {
         bidder: account,
         amount: web3.toWei(0.2002, 'ether')
       }
-    }), { from: loan.borrower })
-    await loan.stateListeners.refresh();
+    }))
 
-    return loan;
+    if (awaitMining) {
+      return new Promise(async function(resolve, reject) {
+        const event = await loan.events.termBegin()
+        event.watch((err, result) => {
+          event.stopWatching(() => {
+            resolve(loan);
+          })
+        })
+      });
+    } else {
+      return loan;
+    }
   }
 
-  static async LoanInRejectedState(accounts, options={}) {
+  static async LoanInRejectedState(accounts, options={}, awaitMining=true) {
     const loan = await TestLoans.LoanInReviewState(accounts, options);
     await loan.rejectBids({ from: accounts[0] })
-    await loan.stateListeners.refresh();
 
-    return loan;
+    if (awaitMining) {
+      return new Promise(async function(resolve, reject) {
+        const event = await loan.events.bidsRejected()
+        event.watch((err, result) => {
+          event.stopWatching(() => {
+            resolve(loan);
+          })
+        })
+      });
+    } else {
+      return loan;
+    }
   }
 }
 
