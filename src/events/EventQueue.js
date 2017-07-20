@@ -43,14 +43,17 @@ var EventQueue = function () {
   }, {
     key: 'remove',
     value: function remove(id, callback) {
+      // console.log("trying to stop " + this.identifier);
+
       delete this.callbacks[id];
       this.queue = _lodash2.default.remove(this.queue, function (_id) {
-        return id != _id;
+        return id == _id;
       });
 
       this.length -= 1;
 
       if (this.length == 0 && this.watching) {
+        // console.log("actually stopped " + this.identifier);
         this.event.stopWatching(callback);
       } else {
         if (callback) callback();

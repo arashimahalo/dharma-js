@@ -28,7 +28,7 @@ var Servicing = function () {
   _createClass(Servicing, [{
     key: 'expectedAmountRepaidByDate',
     value: function expectedAmountRepaidByDate(date) {
-      if (!this.loan.state.equals(_Constants2.default.ACCEPTED_STATE)) throw new Error('Loan must be in ACCEPTED state before servicing ' + 'utilities can be accessed');
+      if (this.loan.state !== _Constants2.default.ACCEPTED_STATE) throw new Error('Loan must be in ACCEPTED state before servicing ' + 'utilities can be accessed');
 
       var expectedPeriodicRepayment = this.periodicRepaymentOwed();
 
@@ -78,6 +78,17 @@ var Servicing = function () {
           return 'DEFAULT';
         }
       }
+    }
+  }, {
+    key: 'getRepaymentDates',
+    value: function getRepaymentDates() {
+      var dates = [];
+      var termBeginDate = new Date(this.loan.termBeginTimestamp * 1000);
+      for (var i = 1; i <= this.loan.terms.termLength(); i++) {
+        var repaymentDate = (0, _moment2.default)(termBeginDate).add(this.periodDuration(i)).toDate();
+        dates.push(repaymentDate);
+      }
+      return dates;
     }
   }, {
     key: 'periodicRepaymentOwed',

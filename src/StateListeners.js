@@ -24,8 +24,9 @@ var StateListeners = function () {
   _createClass(StateListeners, [{
     key: 'refresh',
     value: async function refresh() {
-      this.loan.state = await this.loan.getState();
-      switch (this.loan.state.toNumber()) {
+      var state = await this.loan.getState();
+      this.loan.state = state.toNumber();
+      switch (this.loan.state) {
         case _Constants.NULL_STATE:
           await this.setupNullStateListeners();
           break;
@@ -74,11 +75,10 @@ var StateListeners = function () {
     value: function onLoanCreated() {
       var _this = this;
 
-      return function (err, logs) {
-        _this.listeners['loanCreated'].stopWatching(async function () {
-          _this.loan.state = _Constants.AUCTION_STATE;
-          await _this.refresh();
-        });
+      return async function (err, logs) {
+        _this.loan.state = _Constants.AUCTION_STATE;
+        await _this.refresh();
+        _this.listeners['loanCreated'].stopWatching(function () {});
       };
     }
   }, {
@@ -86,11 +86,10 @@ var StateListeners = function () {
     value: function onAuctionCompleted() {
       var _this = this;
 
-      return function (err, logs) {
-        _this.listeners['auctionCompleted'].stopWatching(async function () {
-          _this.loan.state = _Constants.REVIEW_STATE;
-          await _this.refresh();
-        });
+      return async function (err, logs) {
+        _this.loan.state = _Constants.REVIEW_STATE;
+        await _this.refresh();
+        _this.listeners['auctionCompleted'].stopWatching(function () {});
       };
     }
   }, {
@@ -98,15 +97,19 @@ var StateListeners = function () {
     value: function onBidsRejected() {
       var _this = this;
 
-      return function (err, logs) {
-        _this.listeners['bidsRejected'].stopWatching(async function () {
-          _this.loan.state = _Constants.REJECTED_STATE;
-          await _this.refresh();
-        });
+      return async function (err, logs) {
+        _this.loan.state = _Constants.REJECTED_STATE;
+        await _this.refresh();
 
-        if ('termBegin' in _this.listeners) _this.listeners['termBegin'].stopWatching(function () {});
+        _this.listeners['bidsRejected'].stopWatching(function () {});
 
-        if ('bidsIgnored' in _this.listeners) _this.listeners['bidsIgnored'].stopWatching(function () {});
+        if ('termBegin' in _this.listeners) {
+          _this.listeners['termBegin'].stopWatching(function () {});
+        }
+
+        if ('bidsIgnored' in _this.listeners) {
+          _this.listeners['bidsIgnored'].stopWatching(function () {});
+        }
       };
     }
   }, {
@@ -114,22 +117,24 @@ var StateListeners = function () {
     value: function onTermBegin() {
       var _this = this;
 
-      return function (err, logs) {
-        _this.listeners['termBegin'].stopWatching(async function () {
-          _this.loan.state = _Constants.ACCEPTED_STATE;
+      return async function (err, logs) {
+        _this.loan.state = _Constants.ACCEPTED_STATE;
 
-          var termBeginBlock = await _Util2.default.getBlock(_this.web3, logs.blockNumber);
+        var termBeginBlock = await _Util2.default.getBlock(_this.web3, logs.blockNumber);
 
-          _this.loan.termBeginBlockNumber = termBeginBlock.number;
-          _this.loan.termBeginTimestamp = termBeginBlock.timestamp;
+        _this.loan.termBeginBlockNumber = termBeginBlock.number;
+        _this.loan.termBeginTimestamp = termBeginBlock.timestamp;
 
-          _this.loan.interestRate = await _this.loan.getInterestRate();
-          await _this.refresh();
-        });
+        _this.loan.interestRate = await _this.loan.getInterestRate();
+        await _this.refresh();
+
+        _this.listeners['termBegin'].stopWatching(function () {});
 
         if ('bidsRejected' in _this.listeners) _this.listeners['bidsRejected'].stopWatching(function () {});
 
-        if ('bidsIgnored' in _this.listeners) _this.listeners['bidsIgnored'].stopWatching(function () {});
+        if ('bidsIgnored' in _this.listeners) {
+          _this.listeners['bidsIgnored'].stopWatching(function () {});
+        }
       };
     }
   }, {
@@ -137,13 +142,15 @@ var StateListeners = function () {
     value: function onBidsIgnored() {
       var _this = this;
 
-      return function (err, logs) {
-        _this.listeners['bidsIgnored'].stopWatching(async function () {
-          _this.loan.state = _Constants.REJECTED_STATE;
-          await _this.refresh();
-        });
+      return async function (err, logs) {
+        _this.loan.state = _Constants.REJECTED_STATE;
+        await _this.refresh();
 
-        if ('termBegin' in _this.listeners) _this.listeners['termBegin'].stopWatching(function () {});
+        _this.listeners['bidsIgnored'].stopWatching(function () {});
+
+        if ('termBegin' in _this.listeners) {
+          _this.listeners['termBegin'].stopWatching(function () {});
+        }
 
         if ('bidsRejected' in _this.listeners) _this.listeners['bidsRejected'].stopWatching(function () {});
       };

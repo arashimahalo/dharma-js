@@ -80,7 +80,7 @@ var Loan = function (_RedeemableERC) {
   _createClass(Loan, [{
     key: 'toJson',
     value: function toJson() {
-      return {
+      var json = {
         uuid: this.uuid,
         borrower: this.borrower,
         principal: this.principal,
@@ -92,6 +92,14 @@ var Loan = function (_RedeemableERC) {
         auctionPeriodLength: this.auctionPeriodLength,
         reviewPeriodLength: this.reviewPeriodLength
       };
+
+      if (this.interestRate) json.interestRate = this.interestRate;
+      if (this.termBeginBlockNumber) json.termBeginBlockNumber = this.termBeginBlockNumber;
+      if (this.termBeginTimestamp) json.termBeginTimestamp = this.termBeginTimestamp;
+      if (this.auctionPeriodEndBlock) json.auctionPeriodEndBlock = this.auctionPeriodEndBlock;
+      if (this.reviewPeriodEndBlock) json.reviewPeriodEndBlock = this.reviewPeriodEndBlock;
+
+      return json;
     }
   }, {
     key: 'equals',
@@ -150,7 +158,7 @@ var Loan = function (_RedeemableERC) {
       var numBids = await contract.getNumBids.call(this.uuid);
 
       var bids = await Promise.all(_lodash2.default.range(numBids).map(async function (index) {
-        var bid = await contract.getBid.call(_this2.uuid, index);
+        var bid = await contract.getBidByIndex.call(_this2.uuid, index);
         return {
           bidder: bid[0],
           amount: bid[1],
@@ -159,6 +167,24 @@ var Loan = function (_RedeemableERC) {
       }));
 
       return bids;
+    }
+  }, {
+    key: 'getBid',
+    value: async function getBid(bidder) {
+      var contract = await _LoanContract2.default.instantiate(this.web3);
+
+      var bid = await contract.getBidByAddress.call(this.uuid, bidder);
+      return {
+        bidder: bid[0],
+        amount: bid[1],
+        minInterestRate: bid[2]
+      };
+    }
+  }, {
+    key: 'isRefundWithdrawn',
+    value: async function isRefundWithdrawn(bidder) {
+      var bid = await this.getBid(bidder);
+      return bid.amount.equals(0);
     }
   }, {
     key: 'getContract',
@@ -309,6 +335,9 @@ var Loan = function (_RedeemableERC) {
       loan.auctionPeriodLength = new web3.BigNumber(params.auctionPeriodLength);
       loan.reviewPeriodLength = new web3.BigNumber(params.reviewPeriodLength);
 
+      if (params.interestRate) loan.interestRate = new web3.BigNumber(params.interestRate);
+      if (params.termBeginBlockNumber) loan.termBeginBlockNumber = new web3.BigNumber(params.termBeginBlockNumber);
+      if (params.termBeginTimestamp) loan.termBeginTimestamp = new web3.BigNumber(params.termBeginTimestamp);
       if (params.auctionPeriodEndBlock) loan.auctionPeriodEndBlock = new web3.BigNumber(params.auctionPeriodEndBlock);
       if (params.reviewPeriodEndBlock) loan.reviewPeriodEndBlock = new web3.BigNumber(params.reviewPeriodEndBlock);
 

@@ -26,6 +26,10 @@ var _Events = require('./events/Events');
 
 var _Events2 = _interopRequireDefault(_Events);
 
+var _Constants = require('./Constants');
+
+var _Constants2 = _interopRequireDefault(_Constants);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -50,6 +54,7 @@ var Loans = function () {
   }, {
     key: 'get',
     value: async function get(uuid) {
+      var web3 = this.web3;
       var contract = await _LoanContract2.default.instantiate(this.web3);
       var data = await contract.getData.call(uuid);
 
@@ -83,6 +88,25 @@ var Loans = function () {
 
       loanData.auctionPeriodLength = auctionPeriodEndBlock.minus(loanCreatedBlock);
       loanData.reviewPeriodLength = reviewPeriodEndBlock.minus(auctionPeriodEndBlock);
+
+      loanData.state = await contract.getState.call(uuid);
+      loanData.state = loanData.state.toNumber();
+      if (loanData.state == _Constants2.default.ACCEPTED_STATE) {
+        loanData.interestRate = await contract.getInterestRate.call(uuid);
+        var termBegin = await this.events.termBegin({ uuid: uuid }, { fromBlock: 0, toBlock: 'latest' });
+        var termBeginEvents = await new Promise(function (resolve, reject) {
+          termBegin.get(function (err, termBeginEvents) {
+            if (err) reject(err);else resolve(termBeginEvents);
+          });
+        });
+        loanData.termBeginBlockNumber = termBeginEvents[0].args.blockNumber;
+        var block = await new Promise(function (resolve, reject) {
+          web3.eth.getBlock(loanData.termBeginBlockNumber, function (err, block) {
+            if (err) reject(err);else resolve(block);
+          });
+        });
+        loanData.termBeginTimestamp = block.timestamp;
+      }
 
       return _loan2.default.create(this.web3, loanData);
     }
