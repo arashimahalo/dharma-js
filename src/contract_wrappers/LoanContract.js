@@ -64,9 +64,9 @@ var LoanContract = function () {
               case 11:
                 contractVersion = _context.sent;
                 localVersion = {
-                  major: _semver2.default.major(metadata.version),
-                  minor: _semver2.default.minor(metadata.version),
-                  patch: _semver2.default.patch(metadata.version)
+                  major: 0,
+                  minor: 1,
+                  patch: 0
                 };
 
                 if (!(contractVersion[0] != localVersion.major || contractVersion[1] != localVersion.minor || contractVersion[2] != localVersion.patch)) {
