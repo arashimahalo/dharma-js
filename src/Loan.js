@@ -839,7 +839,7 @@ var Loan = function (_RedeemableERC) {
             switch (_context18.prev = _context18.next) {
               case 0:
                 loan = new Loan(web3, params);
-
+                // debugger;
 
                 loan.web3 = web3;
 
@@ -880,13 +880,16 @@ var Loan = function (_RedeemableERC) {
                 loan.servicing = new _Servicing2.default(loan);
                 loan.stateListeners = new _StateListeners2.default(web3, loan);
 
-                _context18.next = 26;
+                console.log('before refresh');
+                _context18.next = 27;
                 return loan.stateListeners.refresh();
 
-              case 26:
+              case 27:
+                console.log('after refresh');
+
                 return _context18.abrupt('return', loan);
 
-              case 27:
+              case 29:
               case 'end':
                 return _context18.stop();
             }

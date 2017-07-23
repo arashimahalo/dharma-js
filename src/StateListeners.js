@@ -32,42 +32,45 @@ var StateListeners = function () {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                _context.next = 2;
+                console.log("getting state");
+                _context.next = 3;
                 return this.loan.getState();
 
-              case 2:
+              case 3:
                 state = _context.sent;
+
+                console.log("got state");
 
                 this.loan.state = state.toNumber();
                 _context.t0 = this.loan.state;
-                _context.next = _context.t0 === _Constants.NULL_STATE ? 7 : _context.t0 === _Constants.AUCTION_STATE ? 10 : _context.t0 === _Constants.REVIEW_STATE ? 13 : 16;
+                _context.next = _context.t0 === _Constants.NULL_STATE ? 9 : _context.t0 === _Constants.AUCTION_STATE ? 12 : _context.t0 === _Constants.REVIEW_STATE ? 15 : 18;
                 break;
 
-              case 7:
-                _context.next = 9;
+              case 9:
+                _context.next = 11;
                 return this.setupNullStateListeners();
 
-              case 9:
-                return _context.abrupt('break', 17);
-
-              case 10:
-                _context.next = 12;
-                return this.setupAuctionStateListeners();
+              case 11:
+                return _context.abrupt('break', 19);
 
               case 12:
-                return _context.abrupt('break', 17);
+                _context.next = 14;
+                return this.setupAuctionStateListeners();
 
-              case 13:
-                _context.next = 15;
-                return this.setupReviewStateListeners();
+              case 14:
+                return _context.abrupt('break', 19);
 
               case 15:
-                return _context.abrupt('break', 17);
-
-              case 16:
-                return _context.abrupt('break', 17);
+                _context.next = 17;
+                return this.setupReviewStateListeners();
 
               case 17:
+                return _context.abrupt('break', 19);
+
+              case 18:
+                return _context.abrupt('break', 19);
+
+              case 19:
               case 'end':
                 return _context.stop();
             }
@@ -89,15 +92,17 @@ var StateListeners = function () {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                _context2.next = 2;
+                console.log("tryna set up null statelisteners");
+                _context2.next = 3;
                 return this.loan.events.created();
 
-              case 2:
+              case 3:
                 this.listeners['loanCreated'] = _context2.sent;
 
                 this.listeners['loanCreated'].watch(this.onLoanCreated());
+                console.log("set up null statelisteners");
 
-              case 4:
+              case 6:
               case 'end':
                 return _context2.stop();
             }
