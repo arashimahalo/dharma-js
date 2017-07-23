@@ -38,7 +38,7 @@ var LoanContract = function () {
     value: function () {
       var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee(web3) {
         var metadata = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _package2.default;
-        var VersionRegister, Loan;
+        var VersionRegister, Loan, versionRegisterInstance, contractVersion, localVersion, loanContractAddress;
         return regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -52,39 +52,43 @@ var LoanContract = function () {
 
                 VersionRegister.setProvider(web3.currentProvider);
                 Loan.setProvider(web3.currentProvider);
-                //
-                // const versionRegisterInstance = await VersionRegister.deployed();
-
-                // const contractVersion = await versionRegisterInstance.currentVersion.call();
-                // const localVersion = {
-                //   major: 0,
-                //   minor: 1,
-                //   patch: 0
-                // }
-                //
-                // if (contractVersion[0] != localVersion.major ||
-                //     contractVersion[1] != localVersion.minor ||
-                //     contractVersion[2] != localVersion.patch) {
-                //   throw new Error('This version of dharma.js is trying to access a ' +
-                //           'deprecated version of the Dharma Protocol contract.  This can ' +
-                //           'be resolved by upgrading the dharma.js package.')
-                // }
-                //
-                //
-                // const loanContractAddress =
-                //   await versionRegisterInstance.getContractByVersion.call(
-                //     localVersion.major,
-                //     localVersion.minor,
-                //     localVersion.patch
-                //   )
 
                 _context.next = 8;
-                return Loan.deployed();
+                return VersionRegister.deployed();
 
               case 8:
+                versionRegisterInstance = _context.sent;
+                _context.next = 11;
+                return versionRegisterInstance.currentVersion.call();
+
+              case 11:
+                contractVersion = _context.sent;
+                localVersion = {
+                  major: 0,
+                  minor: 1,
+                  patch: 0
+                };
+
+                if (!(contractVersion[0] != localVersion.major || contractVersion[1] != localVersion.minor || contractVersion[2] != localVersion.patch)) {
+                  _context.next = 15;
+                  break;
+                }
+
+                throw new Error('This version of dharma.js is trying to access a ' + 'deprecated version of the Dharma Protocol contract.  This can ' + 'be resolved by upgrading the dharma.js package.');
+
+              case 15:
+                _context.next = 17;
+                return versionRegisterInstance.getContractByVersion.call(localVersion.major, localVersion.minor, localVersion.patch);
+
+              case 17:
+                loanContractAddress = _context.sent;
+                _context.next = 20;
+                return Loan.deployed();
+
+              case 20:
                 return _context.abrupt('return', _context.sent);
 
-              case 9:
+              case 21:
               case 'end':
                 return _context.stop();
             }
