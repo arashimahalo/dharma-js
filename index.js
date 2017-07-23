@@ -1,3 +1,3 @@
-const Dharma = require('./src/dharma');
+const Dharma = require('./src/Dharma.js');
 
 module.exports = Dharma;
