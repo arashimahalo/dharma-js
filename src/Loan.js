@@ -2,9 +2,9 @@
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _redeemableErc = require('./redeemableErc20.js');
+var _RedeemableErc = require('./RedeemableErc20.js');
 
-var _redeemableErc2 = _interopRequireDefault(_redeemableErc);
+var _RedeemableErc2 = _interopRequireDefault(_RedeemableErc);
 
 var _LoanContract = require('./contract_wrappers/LoanContract.js');
 
@@ -934,6 +934,6 @@ var Loan = function (_RedeemableERC) {
   }]);
 
   return Loan;
-}(_redeemableErc2.default);
+}(_RedeemableErc2.default);
 
 module.exports = Loan;
