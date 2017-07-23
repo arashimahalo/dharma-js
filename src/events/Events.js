@@ -2,23 +2,23 @@
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _LoanContract = require('../contract_wrappers/LoanContract');
+var _LoanContract = require('../contract_wrappers/LoanContract.js');
 
 var _LoanContract2 = _interopRequireDefault(_LoanContract);
 
-var _AuctionCompleted = require('./AuctionCompleted');
+var _AuctionCompleted = require('./AuctionCompleted.js');
 
 var _AuctionCompleted2 = _interopRequireDefault(_AuctionCompleted);
 
-var _ReviewPeriodCompleted = require('./ReviewPeriodCompleted');
+var _ReviewPeriodCompleted = require('./ReviewPeriodCompleted.js');
 
 var _ReviewPeriodCompleted2 = _interopRequireDefault(_ReviewPeriodCompleted);
 
-var _EventWrapper = require('./EventWrapper');
+var _EventWrapper = require('./EventWrapper.js');
 
 var _EventWrapper2 = _interopRequireDefault(_EventWrapper);
 
-var _EventQueue = require('./EventQueue');
+var _EventQueue = require('./EventQueue.js');
 
 var _EventQueue2 = _interopRequireDefault(_EventQueue);
 

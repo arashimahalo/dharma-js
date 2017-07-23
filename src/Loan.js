@@ -2,55 +2,55 @@
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _redeemableErc = require('./redeemableErc20');
+var _redeemableErc = require('./redeemableErc20.js');
 
 var _redeemableErc2 = _interopRequireDefault(_redeemableErc);
 
-var _LoanContract = require('./contract_wrappers/LoanContract');
+var _LoanContract = require('./contract_wrappers/LoanContract.js');
 
 var _LoanContract2 = _interopRequireDefault(_LoanContract);
 
-var _config = require('../config');
+var _config = require('../config.js');
 
 var _config2 = _interopRequireDefault(_config);
 
-var _requestPromise = require('request-promise');
+var _requestPromise = require('request-promise.js');
 
 var _requestPromise2 = _interopRequireDefault(_requestPromise);
 
-var _LoanSchema = require('./schemas/LoanSchema');
+var _LoanSchema = require('./schemas/LoanSchema.js');
 
 var _LoanSchema2 = _interopRequireDefault(_LoanSchema);
 
-var _BidSchema = require('./schemas/BidSchema');
+var _BidSchema = require('./schemas/BidSchema.js');
 
 var _BidSchema2 = _interopRequireDefault(_BidSchema);
 
-var _Events = require('./events/Events');
+var _Events = require('./events/Events.js');
 
 var _Events2 = _interopRequireDefault(_Events);
 
-var _Attestation = require('./Attestation');
+var _Attestation = require('./Attestation.js');
 
 var _Attestation2 = _interopRequireDefault(_Attestation);
 
-var _Terms = require('./Terms');
+var _Terms = require('./Terms.js');
 
 var _Terms2 = _interopRequireDefault(_Terms);
 
-var _Util = require('./Util');
+var _Util = require('./Util.js');
 
 var _Util2 = _interopRequireDefault(_Util);
 
-var _Constants = require('./Constants');
+var _Constants = require('./Constants.js');
 
 var _Constants2 = _interopRequireDefault(_Constants);
 
-var _Servicing = require('./Servicing');
+var _Servicing = require('./Servicing.js');
 
 var _Servicing2 = _interopRequireDefault(_Servicing);
 
-var _StateListeners = require('./StateListeners');
+var _StateListeners = require('./StateListeners.js');
 
 var _StateListeners2 = _interopRequireDefault(_StateListeners);
 

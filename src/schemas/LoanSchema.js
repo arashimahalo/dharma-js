@@ -1,12 +1,12 @@
 'use strict';
 
-var _Schema2 = require('./Schema');
+var _Schema2 = require('./Schema.js');
 
-var _TermsSchema = require('./TermsSchema');
+var _TermsSchema = require('./TermsSchema.js');
 
 var _TermsSchema2 = _interopRequireDefault(_TermsSchema);
 
-var _SignatureSchema = require('./SignatureSchema');
+var _SignatureSchema = require('./SignatureSchema.js');
 
 var _SignatureSchema2 = _interopRequireDefault(_SignatureSchema);
 

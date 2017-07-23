@@ -10,7 +10,7 @@ var _moment = require('moment');
 
 var _moment2 = _interopRequireDefault(_moment);
 
-var _Constants = require('./Constants');
+var _Constants = require('./Constants.js');
 
 var _Constants2 = _interopRequireDefault(_Constants);
 

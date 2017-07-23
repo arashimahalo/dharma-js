@@ -2,19 +2,19 @@
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _loan = require('./loan');
+var _loan = require('./loan.js');
 
 var _loan2 = _interopRequireDefault(_loan);
 
-var _Terms = require('./Terms');
+var _Terms = require('./Terms.js');
 
 var _Terms2 = _interopRequireDefault(_Terms);
 
-var _Attestation = require('./Attestation');
+var _Attestation = require('./Attestation.js');
 
 var _Attestation2 = _interopRequireDefault(_Attestation);
 
-var _LoanContract = require('./contract_wrappers/LoanContract');
+var _LoanContract = require('./contract_wrappers/LoanContract.js');
 
 var _LoanContract2 = _interopRequireDefault(_LoanContract);
 
@@ -22,11 +22,11 @@ var _v = require('uuid/v4');
 
 var _v2 = _interopRequireDefault(_v);
 
-var _Events = require('./events/Events');
+var _Events = require('./events/Events.js');
 
 var _Events2 = _interopRequireDefault(_Events);
 
-var _Constants = require('./Constants');
+var _Constants = require('./Constants.js');
 
 var _Constants2 = _interopRequireDefault(_Constants);
 
