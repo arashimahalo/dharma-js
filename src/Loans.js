@@ -18,9 +18,9 @@ var _LoanContract = require('./contract_wrappers/LoanContract.js');
 
 var _LoanContract2 = _interopRequireDefault(_LoanContract);
 
-var _v = require('uuid/v4');
+var _uuid = require('uuid');
 
-var _v2 = _interopRequireDefault(_v);
+var _uuid2 = _interopRequireDefault(_uuid);
 
 var _Events = require('./events/Events.js');
 
@@ -53,7 +53,7 @@ var Loans = function () {
             switch (_context.prev = _context.next) {
               case 0:
                 if (!data.uuid) {
-                  data.uuid = this.web3.sha3((0, _v2.default)());
+                  data.uuid = this.web3.sha3((0, _uuid2.default)());
                 }
 
                 return _context.abrupt('return', _Loan2.default.create(this.web3, data));
