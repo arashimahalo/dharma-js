@@ -24,6 +24,8 @@ var _semver2 = _interopRequireDefault(_semver);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var LoanContract = function () {
@@ -33,35 +35,69 @@ var LoanContract = function () {
 
   _createClass(LoanContract, null, [{
     key: 'instantiate',
-    value: async function instantiate(web3) {
-      var metadata = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _package2.default;
+    value: function () {
+      var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee(web3) {
+        var metadata = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _package2.default;
+        var VersionRegister, Loan, versionRegisterInstance, contractVersion, localVersion, loanContractAddress;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                VersionRegister = new _truffleContract2.default(_VersionRegister2.default);
+                Loan = new _truffleContract2.default(_Loan2.default);
 
-      var VersionRegister = new _truffleContract2.default(_VersionRegister2.default);
-      var Loan = new _truffleContract2.default(_Loan2.default);
 
-      VersionRegister.defaults({ from: web3.eth.defaultAccount });
-      Loan.defaults({ from: web3.eth.defaultAccount });
+                VersionRegister.defaults({ from: web3.eth.defaultAccount });
+                Loan.defaults({ from: web3.eth.defaultAccount });
 
-      VersionRegister.setProvider(web3.currentProvider);
-      Loan.setProvider(web3.currentProvider);
+                VersionRegister.setProvider(web3.currentProvider);
+                Loan.setProvider(web3.currentProvider);
 
-      var versionRegisterInstance = await VersionRegister.deployed();
+                _context.next = 8;
+                return VersionRegister.deployed();
 
-      var contractVersion = await versionRegisterInstance.currentVersion.call();
-      var localVersion = {
-        major: _semver2.default.major(metadata.version),
-        minor: _semver2.default.minor(metadata.version),
-        patch: _semver2.default.patch(metadata.version)
-      };
+              case 8:
+                versionRegisterInstance = _context.sent;
+                _context.next = 11;
+                return versionRegisterInstance.currentVersion.call();
 
-      if (contractVersion[0] != localVersion.major || contractVersion[1] != localVersion.minor || contractVersion[2] != localVersion.patch) {
-        throw new Error('This version of dharma.js is trying to access a ' + 'deprecated version of the Dharma Protocol contract.  This can ' + 'be resolved by upgrading the dharma.js package.');
+              case 11:
+                contractVersion = _context.sent;
+                localVersion = {
+                  major: _semver2.default.major(metadata.version),
+                  minor: _semver2.default.minor(metadata.version),
+                  patch: _semver2.default.patch(metadata.version)
+                };
+
+                if (!(contractVersion[0] != localVersion.major || contractVersion[1] != localVersion.minor || contractVersion[2] != localVersion.patch)) {
+                  _context.next = 15;
+                  break;
+                }
+
+                throw new Error('This version of dharma.js is trying to access a ' + 'deprecated version of the Dharma Protocol contract.  This can ' + 'be resolved by upgrading the dharma.js package.');
+
+              case 15:
+                _context.next = 17;
+                return versionRegisterInstance.getContractByVersion.call(localVersion.major, localVersion.minor, localVersion.patch);
+
+              case 17:
+                loanContractAddress = _context.sent;
+                return _context.abrupt('return', Loan.at(loanContractAddress));
+
+              case 19:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function instantiate(_x) {
+        return _ref.apply(this, arguments);
       }
 
-      var loanContractAddress = await versionRegisterInstance.getContractByVersion.call(localVersion.major, localVersion.minor, localVersion.patch);
-
-      return Loan.at(loanContractAddress);
-    }
+      return instantiate;
+    }()
   }]);
 
   return LoanContract;

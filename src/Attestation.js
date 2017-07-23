@@ -20,6 +20,8 @@ var _ethereumjsUtil2 = _interopRequireDefault(_ethereumjsUtil);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Attestation = function () {
@@ -37,28 +39,50 @@ var Attestation = function () {
 
   _createClass(Attestation, [{
     key: 'sign',
-    value: async function sign() {
-      var web3 = this.web3;
-      var attestor = this.attestor;
+    value: function () {
+      var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee() {
+        var web3, attestor, data;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                web3 = this.web3;
+                attestor = this.attestor;
+                data = web3.toHex((0, _jsonStableStringify2.default)(this.data));
+                _context.next = 5;
+                return new Promise(function (accept, reject) {
+                  web3.eth.sign(attestor, data, function (err, signatureRaw) {
+                    if (err) {
+                      console.log(err);
+                      reject(err);
+                    } else {
+                      var signature = _Util2.default.stripZeroEx(signatureRaw);
+                      accept({
+                        r: '0x' + signature.slice(0, 64),
+                        s: '0x' + signature.slice(64, 128),
+                        v: '0x' + signature.slice(128, 130)
+                      });
+                    }
+                  });
+                });
 
-      var data = web3.toHex((0, _jsonStableStringify2.default)(this.data));
+              case 5:
+                return _context.abrupt('return', _context.sent);
 
-      return await new Promise(function (accept, reject) {
-        web3.eth.sign(attestor, data, function (err, signatureRaw) {
-          if (err) {
-            console.log(err);
-            reject(err);
-          } else {
-            var signature = _Util2.default.stripZeroEx(signatureRaw);
-            accept({
-              r: '0x' + signature.slice(0, 64),
-              s: '0x' + signature.slice(64, 128),
-              v: '0x' + signature.slice(128, 130)
-            });
+              case 6:
+              case 'end':
+                return _context.stop();
+            }
           }
-        });
-      });
-    }
+        }, _callee, this);
+      }));
+
+      function sign() {
+        return _ref.apply(this, arguments);
+      }
+
+      return sign;
+    }()
   }, {
     key: 'verifySignature',
     value: function verifySignature(signature) {

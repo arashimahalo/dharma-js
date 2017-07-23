@@ -24,6 +24,8 @@ var _EventQueue2 = _interopRequireDefault(_EventQueue);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var EVENTS = {
@@ -47,71 +49,164 @@ var Events = function () {
     this.queues = {};
 
     var _loop = function _loop(eventName) {
-      _this[eventName] = async function (filter, additionalFilter, callback) {
-        return await _this.getEvent(EVENTS[eventName], filter, additionalFilter, callback);
-      };
+      _this[eventName] = function () {
+        var _ref3 = _asyncToGenerator(regeneratorRuntime.mark(function _callee3(filter, additionalFilter, callback) {
+          return regeneratorRuntime.wrap(function _callee3$(_context3) {
+            while (1) {
+              switch (_context3.prev = _context3.next) {
+                case 0:
+                  _context3.next = 2;
+                  return _this.getEvent(EVENTS[eventName], filter, additionalFilter, callback);
+
+                case 2:
+                  return _context3.abrupt('return', _context3.sent);
+
+                case 3:
+                case 'end':
+                  return _context3.stop();
+              }
+            }
+          }, _callee3, _this);
+        }));
+
+        return function (_x3, _x4, _x5) {
+          return _ref3.apply(this, arguments);
+        };
+      }();
     };
 
     for (var eventName in EVENTS) {
       _loop(eventName);
     }
 
-    this.auctionCompleted = async function (callback) {
-      var identifier = _EventQueue2.default.getIdentifier('AuctionCompleted', defaultOptions, {});
+    this.auctionCompleted = function () {
+      var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee(callback) {
+        var identifier, event, queue;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                identifier = _EventQueue2.default.getIdentifier('AuctionCompleted', defaultOptions, {});
+                _context.next = 3;
+                return _AuctionCompleted2.default.create(web3, defaultOptions, callback);
 
-      var event = await _AuctionCompleted2.default.create(web3, defaultOptions, callback);
+              case 3:
+                event = _context.sent;
 
-      if (!(identifier in _this.queues)) {
-        _this.queues[identifier] = new _EventQueue2.default(identifier, event);
-      }
 
-      var queue = _this.queues[identifier];
-      return new _EventWrapper2.default(event, queue, callback);
-    };
+                if (!(identifier in _this.queues)) {
+                  _this.queues[identifier] = new _EventQueue2.default(identifier, event);
+                }
 
-    this.reviewPeriodCompleted = async function (callback) {
-      var identifier = _EventQueue2.default.getIdentifier('ReviewPeriodCompleted', defaultOptions, {});
+                queue = _this.queues[identifier];
+                return _context.abrupt('return', new _EventWrapper2.default(event, queue, callback));
 
-      var event = await _ReviewPeriodCompleted2.default.create(web3, defaultOptions, callback);
+              case 7:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, _this);
+      }));
 
-      if (!(identifier in _this.queues)) {
-        _this.queues[identifier] = new _EventQueue2.default(identifier, event);
-      }
+      return function (_x) {
+        return _ref.apply(this, arguments);
+      };
+    }();
 
-      var queue = _this.queues[identifier];
-      return new _EventWrapper2.default(event, queue, callback);
-    };
+    this.reviewPeriodCompleted = function () {
+      var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee2(callback) {
+        var identifier, event, queue;
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                identifier = _EventQueue2.default.getIdentifier('ReviewPeriodCompleted', defaultOptions, {});
+                _context2.next = 3;
+                return _ReviewPeriodCompleted2.default.create(web3, defaultOptions, callback);
+
+              case 3:
+                event = _context2.sent;
+
+
+                if (!(identifier in _this.queues)) {
+                  _this.queues[identifier] = new _EventQueue2.default(identifier, event);
+                }
+
+                queue = _this.queues[identifier];
+                return _context2.abrupt('return', new _EventWrapper2.default(event, queue, callback));
+
+              case 7:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, _this);
+      }));
+
+      return function (_x2) {
+        return _ref2.apply(this, arguments);
+      };
+    }();
   }
 
   _createClass(Events, [{
     key: 'getEvent',
-    value: async function getEvent(eventName, filter, additionalFilter, callback) {
-      var contract = await _LoanContract2.default.instantiate(this.web3);
+    value: function () {
+      var _ref4 = _asyncToGenerator(regeneratorRuntime.mark(function _callee4(eventName, filter, additionalFilter, callback) {
+        var contract,
+            event,
+            queueIdentifier,
+            queue,
+            _args4 = arguments;
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                _context4.next = 2;
+                return _LoanContract2.default.instantiate(this.web3);
 
-      if (arguments.length === 2 && typeof filter === 'function') {
-        callback = filter;
-        filter = {};
-      } else if (arguments.length === 3 && typeof additionalFilter === 'function') {
-        callback = additionalFilter;
-        additionalFilter = {};
+              case 2:
+                contract = _context4.sent;
+
+
+                if (_args4.length === 2 && typeof filter === 'function') {
+                  callback = filter;
+                  filter = {};
+                } else if (_args4.length === 3 && typeof additionalFilter === 'function') {
+                  callback = additionalFilter;
+                  additionalFilter = {};
+                }
+
+                filter = filter || this.defaultOptions;
+
+                Object.assign(filter, this.defaultOptions);
+
+                event = contract[eventName](filter, additionalFilter);
+                queueIdentifier = _EventQueue2.default.getIdentifier(eventName, filter, additionalFilter);
+
+
+                if (!(queueIdentifier in this.queues)) {
+                  this.queues[queueIdentifier] = new _EventQueue2.default(queueIdentifier, event);
+                }
+
+                queue = this.queues[queueIdentifier];
+                return _context4.abrupt('return', new _EventWrapper2.default(event, queue, callback));
+
+              case 11:
+              case 'end':
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function getEvent(_x6, _x7, _x8, _x9) {
+        return _ref4.apply(this, arguments);
       }
 
-      filter = filter || this.defaultOptions;
-
-      Object.assign(filter, this.defaultOptions);
-
-      var event = contract[eventName](filter, additionalFilter);
-
-      var queueIdentifier = _EventQueue2.default.getIdentifier(eventName, filter, additionalFilter);
-
-      if (!(queueIdentifier in this.queues)) {
-        this.queues[queueIdentifier] = new _EventQueue2.default(queueIdentifier, event);
-      }
-
-      var queue = this.queues[queueIdentifier];
-
-      return new _EventWrapper2.default(event, queue, callback);
-    }
+      return getEvent;
+    }()
   }]);
 
   return Events;

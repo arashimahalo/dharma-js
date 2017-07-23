@@ -16,6 +16,8 @@ var _Constants2 = _interopRequireDefault(_Constants);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Servicing = function () {
@@ -38,23 +40,74 @@ var Servicing = function () {
     }
   }, {
     key: 'getInterestRepaidToDate',
-    value: async function getInterestRepaidToDate() {
-      var amountRepaid = await this.loan.amountRepaid();
-      var decimals = 10 ** 18;
+    value: function () {
+      var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee() {
+        var amountRepaid, decimals, interestRate;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return this.loan.amountRepaid();
 
-      var interestRate = this.loan.interestRate;
-      interestRate = interestRate.div(decimals);
+              case 2:
+                amountRepaid = _context.sent;
+                decimals = 10 ** 18;
+                interestRate = this.loan.interestRate;
 
-      return amountRepaid.times(interestRate).div(interestRate.plus(1));
-    }
+                interestRate = interestRate.div(decimals);
+
+                return _context.abrupt('return', amountRepaid.times(interestRate).div(interestRate.plus(1)));
+
+              case 7:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function getInterestRepaidToDate() {
+        return _ref.apply(this, arguments);
+      }
+
+      return getInterestRepaidToDate;
+    }()
   }, {
     key: 'getPrincipalRepaidToDate',
-    value: async function getPrincipalRepaidToDate() {
-      var amountRepaid = await this.loan.amountRepaid();
-      var interestRepaidToDate = await this.getInterestRepaidToDate();
+    value: function () {
+      var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee2() {
+        var amountRepaid, interestRepaidToDate;
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _context2.next = 2;
+                return this.loan.amountRepaid();
 
-      return amountRepaid.minus(interestRepaidToDate);
-    }
+              case 2:
+                amountRepaid = _context2.sent;
+                _context2.next = 5;
+                return this.getInterestRepaidToDate();
+
+              case 5:
+                interestRepaidToDate = _context2.sent;
+                return _context2.abrupt('return', amountRepaid.minus(interestRepaidToDate));
+
+              case 7:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function getPrincipalRepaidToDate() {
+        return _ref2.apply(this, arguments);
+      }
+
+      return getPrincipalRepaidToDate;
+    }()
   }, {
     key: '_numRepaymentPeriods',
     value: function _numRepaymentPeriods(date) {
@@ -64,29 +117,70 @@ var Servicing = function () {
     }
   }, {
     key: 'getRepaymentStatus',
-    value: async function getRepaymentStatus() {
-      var amountRepaid = await this.loan.amountRepaid();
-      var expectedAmountRepaid = this.expectedAmountRepaidByDate(new Date());
+    value: function () {
+      var _ref3 = _asyncToGenerator(regeneratorRuntime.mark(function _callee3() {
+        var amountRepaid, expectedAmountRepaid, durationSinceTermBegin, numPeriodsRepaid, lastRepaymentDateMissed, weeksSinceRepaymentDateMissed;
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                _context3.next = 2;
+                return this.loan.amountRepaid();
 
-      if (amountRepaid.gte(expectedAmountRepaid)) {
-        var durationSinceTermBegin = _moment2.default.duration((0, _moment2.default)().diff(this.loan.termBeginTimestamp * 1000));
-        if (durationSinceTermBegin < this.termDuration()) {
-          return 'CURRENT';
-        } else {
-          return 'REPAID';
-        }
-      } else {
-        var numPeriodsRepaid = amountRepaid.div(this.periodicRepaymentOwed()).floor().toNumber();
-        var lastRepaymentDateMissed = (0, _moment2.default)(this.loan.termBeginTimestamp * 1000).add(this.periodDuration(numPeriodsRepaid + 1));
-        var weeksSinceRepaymentDateMissed = _moment2.default.duration((0, _moment2.default)().diff(lastRepaymentDateMissed)).asWeeks();
+              case 2:
+                amountRepaid = _context3.sent;
+                expectedAmountRepaid = this.expectedAmountRepaidByDate(new Date());
 
-        if (weeksSinceRepaymentDateMissed <= 2) {
-          return 'DELINQUENT';
-        } else {
-          return 'DEFAULT';
-        }
+                if (!amountRepaid.gte(expectedAmountRepaid)) {
+                  _context3.next = 13;
+                  break;
+                }
+
+                durationSinceTermBegin = _moment2.default.duration((0, _moment2.default)().diff(this.loan.termBeginTimestamp * 1000));
+
+                if (!(durationSinceTermBegin < this.termDuration())) {
+                  _context3.next = 10;
+                  break;
+                }
+
+                return _context3.abrupt('return', 'CURRENT');
+
+              case 10:
+                return _context3.abrupt('return', 'REPAID');
+
+              case 11:
+                _context3.next = 21;
+                break;
+
+              case 13:
+                numPeriodsRepaid = amountRepaid.div(this.periodicRepaymentOwed()).floor().toNumber();
+                lastRepaymentDateMissed = (0, _moment2.default)(this.loan.termBeginTimestamp * 1000).add(this.periodDuration(numPeriodsRepaid + 1));
+                weeksSinceRepaymentDateMissed = _moment2.default.duration((0, _moment2.default)().diff(lastRepaymentDateMissed)).asWeeks();
+
+                if (!(weeksSinceRepaymentDateMissed <= 2)) {
+                  _context3.next = 20;
+                  break;
+                }
+
+                return _context3.abrupt('return', 'DELINQUENT');
+
+              case 20:
+                return _context3.abrupt('return', 'DEFAULT');
+
+              case 21:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function getRepaymentStatus() {
+        return _ref3.apply(this, arguments);
       }
-    }
+
+      return getRepaymentStatus;
+    }()
   }, {
     key: 'getRepaymentDates',
     value: function getRepaymentDates() {
@@ -116,14 +210,36 @@ var Servicing = function () {
     }
   }, {
     key: 'currentBalanceOwed',
-    value: async function currentBalanceOwed() {
-      var decimals = 10 ** 18;
+    value: function () {
+      var _ref4 = _asyncToGenerator(regeneratorRuntime.mark(function _callee4() {
+        var decimals, amountRepaid, expectedAmountRepaid;
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                decimals = 10 ** 18;
+                _context4.next = 3;
+                return this.loan.amountRepaid();
 
-      var amountRepaid = await this.loan.amountRepaid();
-      var expectedAmountRepaid = this.expectedAmountRepaidByDate(new Date());
+              case 3:
+                amountRepaid = _context4.sent;
+                expectedAmountRepaid = this.expectedAmountRepaidByDate(new Date());
+                return _context4.abrupt('return', _bignumber2.default.max(expectedAmountRepaid.minus(amountRepaid), 0));
 
-      return _bignumber2.default.max(expectedAmountRepaid.minus(amountRepaid), 0);
-    }
+              case 6:
+              case 'end':
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function currentBalanceOwed() {
+        return _ref4.apply(this, arguments);
+      }
+
+      return currentBalanceOwed;
+    }()
   }, {
     key: 'periodDuration',
     value: function periodDuration() {

@@ -12,6 +12,8 @@ var _LoanContract2 = _interopRequireDefault(_LoanContract);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var AuctionCompleted = function () {
@@ -59,23 +61,69 @@ var AuctionCompleted = function () {
     }
   }], [{
     key: 'create',
-    value: async function create(web3, options, callback) {
-      var contract = await _LoanContract2.default.instantiate(web3);
+    value: function () {
+      var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee(web3, options, callback) {
+        var contract, auctionPeriodEndBlock, auctionCompletedEvent;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return _LoanContract2.default.instantiate(web3);
 
-      if (options.uuid === 'undefined') throw new Error('AuctionCompleted event requires UUID to follow.');
+              case 2:
+                contract = _context.sent;
 
-      var auctionPeriodEndBlock = await contract.getAuctionEndBlock.call(options.uuid);
+                if (!(options.uuid === 'undefined')) {
+                  _context.next = 5;
+                  break;
+                }
 
-      if (auctionPeriodEndBlock.equals(0)) throw new Error('AuctionCompleted listener can only be activated once loan' + 'has been broadcasted');
+                throw new Error('AuctionCompleted event requires UUID to follow.');
 
-      var auctionCompletedEvent = new AuctionCompleted(web3, auctionPeriodEndBlock);
+              case 5:
+                _context.next = 7;
+                return contract.getAuctionEndBlock.call(options.uuid);
 
-      if (callback) {
-        auctionCompletedEvent.watch(callback);
-      } else {
-        return auctionCompletedEvent;
+              case 7:
+                auctionPeriodEndBlock = _context.sent;
+
+                if (!auctionPeriodEndBlock.equals(0)) {
+                  _context.next = 10;
+                  break;
+                }
+
+                throw new Error('AuctionCompleted listener can only be activated once loan' + 'has been broadcasted');
+
+              case 10:
+                auctionCompletedEvent = new AuctionCompleted(web3, auctionPeriodEndBlock);
+
+                if (!callback) {
+                  _context.next = 15;
+                  break;
+                }
+
+                auctionCompletedEvent.watch(callback);
+                _context.next = 16;
+                break;
+
+              case 15:
+                return _context.abrupt('return', auctionCompletedEvent);
+
+              case 16:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function create(_x, _x2, _x3) {
+        return _ref.apply(this, arguments);
       }
-    }
+
+      return create;
+    }()
   }]);
 
   return AuctionCompleted;
