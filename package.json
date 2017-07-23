@@ -1,5 +1,5 @@
 {
-  "name": "dharma",
+  "name": "dharma-js",
   "version": "0.1.0",
   "description": "JS wrapper for interacting with the Dharma Loan network on Ethereum",
   "main": "index.js",

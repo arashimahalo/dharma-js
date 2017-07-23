@@ -37,8 +37,8 @@ var Servicing = function () {
       return expectedPeriodicRepayment.times(numRepaymentPeriods);
     }
   }, {
-    key: 'getInterestEarnedToDate',
-    value: async function getInterestEarnedToDate() {
+    key: 'getInterestRepaidToDate',
+    value: async function getInterestRepaidToDate() {
       var amountRepaid = await this.loan.amountRepaid();
       var decimals = 10 ** 18;
 
@@ -46,6 +46,14 @@ var Servicing = function () {
       interestRate = interestRate.div(decimals);
 
       return amountRepaid.times(interestRate).div(interestRate.plus(1));
+    }
+  }, {
+    key: 'getPrincipalRepaidToDate',
+    value: async function getPrincipalRepaidToDate() {
+      var amountRepaid = await this.loan.amountRepaid();
+      var interestRepaidToDate = await this.getInterestRepaidToDate();
+
+      return amountRepaid.minus(interestRepaidToDate);
     }
   }, {
     key: '_numRepaymentPeriods',
@@ -105,6 +113,16 @@ var Servicing = function () {
 
       var principal = this.loan.principal;
       return interestRate.times(principal);
+    }
+  }, {
+    key: 'currentBalanceOwed',
+    value: async function currentBalanceOwed() {
+      var decimals = 10 ** 18;
+
+      var amountRepaid = await this.loan.amountRepaid();
+      var expectedAmountRepaid = this.expectedAmountRepaidByDate(new Date());
+
+      return _bignumber2.default.max(expectedAmountRepaid.minus(amountRepaid), 0);
     }
   }, {
     key: 'periodDuration',

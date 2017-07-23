@@ -296,12 +296,21 @@ var Loan = function (_RedeemableERC) {
     }
   }, {
     key: 'amountRepaid',
-    value: async function amountRepaid(options, callback) {
+    value: async function amountRepaid(options) {
       var contract = await _LoanContract2.default.instantiate(this.web3);
 
       options = options || { from: this.web3.eth.defaultAccount };
 
       return contract.getAmountRepaid.call(this.uuid, options);
+    }
+  }, {
+    key: 'getRedeemableValue',
+    value: async function getRedeemableValue(investor, options) {
+      var contract = await _LoanContract2.default.instantiate(this.web3);
+
+      options = options || { from: this.web3.eth.defaultAccount };
+
+      return contract.getRedeemableValue.call(this.uuid, investor, options);
     }
   }, {
     key: 'signAttestation',
