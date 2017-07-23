@@ -52,7 +52,7 @@ var Servicing = function () {
 
               case 2:
                 amountRepaid = _context.sent;
-                decimals = 10 ** 18;
+                decimals = Math.pow(10, 18);
                 interestRate = this.loan.interestRate;
 
                 interestRate = interestRate.div(decimals);
@@ -200,7 +200,7 @@ var Servicing = function () {
   }, {
     key: 'totalOwed',
     value: function totalOwed() {
-      var decimals = 10 ** 18;
+      var decimals = Math.pow(10, 18);
 
       var interestRate = this.loan.interestRate;
       interestRate = interestRate.div(decimals).plus(1);
@@ -217,7 +217,7 @@ var Servicing = function () {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                decimals = 10 ** 18;
+                decimals = Math.pow(10, 18);
                 _context4.next = 3;
                 return this.loan.amountRepaid();
 
