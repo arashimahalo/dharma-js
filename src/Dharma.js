@@ -1,8 +1,8 @@
 'use strict';
 
-var _loans = require('./loans');
+var _Loans = require('./Loans.js');
 
-var _loans2 = _interopRequireDefault(_loans);
+var _Loans2 = _interopRequireDefault(_Loans);
 
 var _package = require('../package.json');
 
@@ -16,7 +16,7 @@ var Dharma = function Dharma(web3) {
   _classCallCheck(this, Dharma);
 
   this.web3 = web3;
-  this.loans = new _loans2.default(web3);
+  this.loans = new _Loans2.default(web3);
 };
 
 module.exports = Dharma;

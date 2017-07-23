@@ -2,9 +2,9 @@
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _loan = require('./loan.js');
+var _Loan = require('./Loan.js');
 
-var _loan2 = _interopRequireDefault(_loan);
+var _Loan2 = _interopRequireDefault(_Loan);
 
 var _Terms = require('./Terms.js');
 
@@ -49,7 +49,7 @@ var Loans = function () {
         data.uuid = this.web3.sha3((0, _v2.default)());
       }
 
-      return _loan2.default.create(this.web3, data);
+      return _Loan2.default.create(this.web3, data);
     }
   }, {
     key: 'get',
@@ -108,7 +108,7 @@ var Loans = function () {
         loanData.termBeginTimestamp = block.timestamp;
       }
 
-      return _loan2.default.create(this.web3, loanData);
+      return _Loan2.default.create(this.web3, loanData);
     }
   }]);
 
