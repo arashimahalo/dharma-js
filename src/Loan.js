@@ -112,7 +112,7 @@ var Loan = function (_RedeemableERC) {
     key: 'broadcast',
     value: function () {
       var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee(options) {
-        var contract, loanExists;
+        var contract, loanExists, result;
         return regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -145,9 +145,16 @@ var Loan = function (_RedeemableERC) {
                   options.gas = UNDEFINED_GAS_ALLOWANCE;
                 }
 
-                return _context.abrupt('return', contract.createLoan(this.uuid, this.borrower, this.principal, this.terms.toByteString(), this.attestor, this.attestorFee, this.defaultRisk, this.signature.r, this.signature.s, this.signature.v, this.auctionPeriodLength, this.reviewPeriodLength, options));
+                _context.next = 12;
+                return contract.createLoan(this.uuid, this.borrower, this.principal, this.terms.toByteString(), this.attestor, this.attestorFee, this.defaultRisk, this.signature.r, this.signature.s, this.signature.v, this.auctionPeriodLength, this.reviewPeriodLength, options);
 
-              case 11:
+              case 12:
+                result = _context.sent;
+
+
+                console.log(result);
+
+              case 14:
               case 'end':
                 return _context.stop();
             }
