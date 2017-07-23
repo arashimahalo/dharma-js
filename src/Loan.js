@@ -14,7 +14,7 @@ var _config = require('../config.js');
 
 var _config2 = _interopRequireDefault(_config);
 
-var _requestPromise = require('request-promise.js');
+var _requestPromise = require('request-promise');
 
 var _requestPromise2 = _interopRequireDefault(_requestPromise);
 
