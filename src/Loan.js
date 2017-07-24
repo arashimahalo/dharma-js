@@ -559,7 +559,7 @@ var Loan = function (_RedeemableERC) {
 
               case 2:
                 contract = _context11.sent;
-                blockNumber = 'latest';
+                blockNumber = void 0;
 
                 if (!nextBlock) {
                   _context11.next = 9;
