@@ -1,1 +1,0 @@
-submodules/LoanStandard/migrations/1_initial_migration.js
