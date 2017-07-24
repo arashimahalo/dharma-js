@@ -28,7 +28,7 @@
     "random-js": "^1.0.8",
     "request-promise": "^4.2.1",
     "semver": "^5.3.0",
-    "truffle-contract": "^2.0.1",
+    "truffle-contract": "^2.0.2",
     "uuid": "^3.1.0"
   },
   "devDependencies": {
