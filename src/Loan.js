@@ -145,7 +145,7 @@ var Loan = function (_RedeemableERC) {
                   options.gas = UNDEFINED_GAS_ALLOWANCE;
                 }
 
-                return _context.abrupt('return', contract.createLoan(this.uuid, this.borrower, this.principal, this.terms.toByteString(), this.attestor, this.attestorFee, this.defaultRisk, this.signature.r, this.signature.s, this.signature.v, this.auctionPeriodLength, this.reviewPeriodLength, options));
+                return _context.abrupt('return', contract.createLoan(this.uuid, this.borrower, this.web3.toHex(this.principal), this.terms.toByteString(), this.attestor, this.web3.toHex(this.attestorFee), this.web3.toHex(this.defaultRisk), this.signature.r, this.signature.s, this.signature.v, this.web3.toHex(this.auctionPeriodLength), this.web3.toHex(this.reviewPeriodLength), options));
 
               case 11:
               case 'end':
@@ -228,7 +228,7 @@ var Loan = function (_RedeemableERC) {
               case 7:
 
                 options.value = amount;
-                return _context3.abrupt('return', contract.bid(this.uuid, tokenRecipient, minInterestRate, options));
+                return _context3.abrupt('return', contract.bid(this.uuid, tokenRecipient, this.web3.toHex(minInterestRate), options));
 
               case 9:
               case 'end':
@@ -416,7 +416,7 @@ var Loan = function (_RedeemableERC) {
     key: 'acceptBids',
     value: function () {
       var _ref9 = _asyncToGenerator(regeneratorRuntime.mark(function _callee9(bids, options) {
-        var contract, bidSchema, totalBidValueAccepted, i, state;
+        var contract, bidSchema, totalBidValueAccepted, i, state, web3;
         return regeneratorRuntime.wrap(function _callee9$(_context9) {
           while (1) {
             switch (_context9.prev = _context9.next) {
@@ -464,17 +464,18 @@ var Loan = function (_RedeemableERC) {
                 throw new Error('Bids can only be accepted during the review period.');
 
               case 15:
-                _context9.next = 17;
+                web3 = this.web3;
+                _context9.next = 18;
                 return contract.acceptBids(this.uuid, bids.map(function (bid) {
                   return bid.bidder;
                 }), bids.map(function (bid) {
-                  return bid.amount;
+                  return web3.toHex(bid.amount);
                 }), options);
 
-              case 17:
+              case 18:
                 return _context9.abrupt('return', _context9.sent);
 
-              case 18:
+              case 19:
               case 'end':
                 return _context9.stop();
             }
