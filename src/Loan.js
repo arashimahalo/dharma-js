@@ -563,7 +563,7 @@ var Loan = function (_RedeemableERC) {
                 blockNumber = void 0;
 
                 if (!nextBlock) {
-                  _context11.next = 9;
+                  _context11.next = 10;
                   break;
                 }
 
@@ -573,16 +573,17 @@ var Loan = function (_RedeemableERC) {
               case 7:
                 blockNumber = _context11.sent;
 
-                blockNumber += 1;
+                blockNumber = new this.web3.BigNumber(blockNumber);
+                blockNumber = blockNumber.plus(1);
 
-              case 9:
-                _context11.next = 11;
+              case 10:
+                _context11.next = 12;
                 return contract.getState.call(this.uuid, blockNumber);
 
-              case 11:
+              case 12:
                 return _context11.abrupt('return', _context11.sent);
 
-              case 12:
+              case 13:
               case 'end':
                 return _context11.stop();
             }
