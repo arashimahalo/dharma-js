@@ -21,7 +21,6 @@
     "design-pattern": "0.0.21",
     "es6-promisify": "^5.0.0",
     "ethereumjs-util": "^5.1.2",
-    "is-ipfs": "^0.3.0",
     "json-stable-stringify": "^1.0.1",
     "mockdate": "^2.0.1",
     "moment": "^2.18.1",
@@ -47,6 +46,6 @@
     "mocha": "^3.4.2",
     "sinon": "^2.3.6",
     "truffle": "^3.2.5",
-    "web3": "^0.19.1"
+    "web3": "^0.20.1"
   }
 }
