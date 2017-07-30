@@ -25,9 +25,8 @@
     "mockdate": "^2.0.1",
     "moment": "^2.18.1",
     "random-js": "^1.0.8",
-    "request-promise": "^4.2.1",
     "semver": "^5.3.0",
-    "truffle-contract": "^2.0.2",
+    "truffle-contract": "^2.0.4",
     "uuid": "^3.1.0"
   },
   "devDependencies": {
@@ -44,8 +43,8 @@
     "expect.js": "^0.3.1",
     "lodash": "^4.17.4",
     "mocha": "^3.4.2",
-    "sinon": "^2.3.6",
-    "truffle": "^3.2.5",
+    "sinon": "^2.4.1",
+    "truffle": "^3.4.6",
     "web3": "^0.20.1"
   }
 }
