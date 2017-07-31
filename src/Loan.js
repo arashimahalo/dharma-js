@@ -65,7 +65,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var UNDEFINED_GAS_ALLOWANCE = 350000;
-var UNDEFINED_GAS_PRICE = 15;
+var UNDEFINED_GAS_PRICE_GWEI = 15;
 
 var Loan = function (_RedeemableERC) {
   _inherits(Loan, _RedeemableERC);
@@ -139,7 +139,7 @@ var Loan = function (_RedeemableERC) {
               case 9:
 
                 options.gas = options.gas || UNDEFINED_GAS_ALLOWANCE;
-                options.gasPrice = options.gasPrice || UNDEFINED_GAS_PRICE;
+                options.gasPrice = options.gasPrice || this.web3.toWei(UNDEFINED_GAS_PRICE_GWEI, 'gwei');
 
                 return _context.abrupt('return', contract.createLoan(this.uuid, this.borrower, this.web3.toHex(this.principal), this.terms.toByteString(), this.attestor, this.web3.toHex(this.attestorFee), this.web3.toHex(this.defaultRisk), this.signature.r, this.signature.s, this.signature.v, this.web3.toHex(this.auctionPeriodLength), this.web3.toHex(this.reviewPeriodLength), options));
 
@@ -211,7 +211,7 @@ var Loan = function (_RedeemableERC) {
                 options = options || { from: tokenRecipient };
 
                 options.gas = options.gas || UNDEFINED_GAS_ALLOWANCE;
-                options.gasPrice = options.gasPrice || UNDEFINED_GAS_PRICE;
+                options.gasPrice = options.gasPrice || this.web3.toWei(UNDEFINED_GAS_PRICE_GWEI, 'gwei');
 
                 if (this.web3.isAddress(tokenRecipient)) {
                   _context3.next = 8;
@@ -426,7 +426,7 @@ var Loan = function (_RedeemableERC) {
                 options = options || { from: this.borrower };
 
                 options.gas = options.gas || UNDEFINED_GAS_ALLOWANCE;
-                options.gasPrice = options.gasPrice || UNDEFINED_GAS_PRICE;
+                options.gasPrice = options.gasPrice || this.web3.toWei(UNDEFINED_GAS_PRICE_GWEI, 'gwei');
 
                 bidSchema = new _BidSchema2.default(this.web3);
                 totalBidValueAccepted = new this.web3.BigNumber(0);
