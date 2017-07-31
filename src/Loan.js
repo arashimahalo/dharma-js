@@ -64,7 +64,8 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var UNDEFINED_GAS_ALLOWANCE = 500000;
+var UNDEFINED_GAS_ALLOWANCE = 350000;
+var UNDEFINED_GAS_PRICE = 15;
 
 var Loan = function (_RedeemableERC) {
   _inherits(Loan, _RedeemableERC);
@@ -137,13 +138,12 @@ var Loan = function (_RedeemableERC) {
 
               case 9:
 
-                if (typeof options.gas === 'undefined') {
-                  options.gas = UNDEFINED_GAS_ALLOWANCE;
-                }
+                options.gas = options.gas || UNDEFINED_GAS_ALLOWANCE;
+                options.gasPrice = options.gasPrice || UNDEFINED_GAS_PRICE;
 
                 return _context.abrupt('return', contract.createLoan(this.uuid, this.borrower, this.web3.toHex(this.principal), this.terms.toByteString(), this.attestor, this.web3.toHex(this.attestorFee), this.web3.toHex(this.defaultRisk), this.signature.r, this.signature.s, this.signature.v, this.web3.toHex(this.auctionPeriodLength), this.web3.toHex(this.reviewPeriodLength), options));
 
-              case 11:
+              case 12:
               case 'end':
                 return _context.stop();
             }
@@ -210,23 +210,22 @@ var Loan = function (_RedeemableERC) {
 
                 options = options || { from: tokenRecipient };
 
-                if (typeof options.gas === 'undefined') {
-                  options.gas = UNDEFINED_GAS_ALLOWANCE;
-                }
+                options.gas = options.gas || UNDEFINED_GAS_ALLOWANCE;
+                options.gasPrice = options.gasPrice || UNDEFINED_GAS_PRICE;
 
                 if (this.web3.isAddress(tokenRecipient)) {
-                  _context3.next = 7;
+                  _context3.next = 8;
                   break;
                 }
 
                 throw new Error("Token recipient must be valid ethereum address.");
 
-              case 7:
+              case 8:
 
                 options.value = amount;
                 return _context3.abrupt('return', contract.bid(this.uuid, tokenRecipient, this.web3.toHex(minInterestRate), options));
 
-              case 9:
+              case 10:
               case 'end':
                 return _context3.stop();
             }
@@ -426,9 +425,8 @@ var Loan = function (_RedeemableERC) {
 
                 options = options || { from: this.borrower };
 
-                if (typeof options.gas === 'undefined') {
-                  options.gas = UNDEFINED_GAS_ALLOWANCE;
-                }
+                options.gas = options.gas || UNDEFINED_GAS_ALLOWANCE;
+                options.gasPrice = options.gasPrice || UNDEFINED_GAS_PRICE;
 
                 bidSchema = new _BidSchema2.default(this.web3);
                 totalBidValueAccepted = new this.web3.BigNumber(0);
@@ -439,13 +437,13 @@ var Loan = function (_RedeemableERC) {
                 }
 
                 if (totalBidValueAccepted.equals(this.principal.plus(this.attestorFee))) {
-                  _context9.next = 10;
+                  _context9.next = 11;
                   break;
                 }
 
                 throw new Error('Total value of bids accepted should equal the desired ' + "principal, plus the attestor's fee");
 
-              case 10:
+              case 11:
 
                 // TODO: Fix issue around truffle-contract bugs when using call methods
                 //    w/ non-default block numbers
@@ -456,17 +454,17 @@ var Loan = function (_RedeemableERC) {
                 // }
 
                 web3 = this.web3;
-                _context9.next = 13;
+                _context9.next = 14;
                 return contract.acceptBids(this.uuid, bids.map(function (bid) {
                   return bid.bidder;
                 }), bids.map(function (bid) {
                   return web3.toHex(bid.amount);
                 }), options);
 
-              case 13:
+              case 14:
                 return _context9.abrupt('return', _context9.sent);
 
-              case 14:
+              case 15:
               case 'end':
                 return _context9.stop();
             }
@@ -498,10 +496,6 @@ var Loan = function (_RedeemableERC) {
 
                 options = options || { from: this.borrower };
 
-                if (typeof options.gas === 'undefined') {
-                  options.gas = UNDEFINED_GAS_ALLOWANCE;
-                }
-
                 // TODO: Fix issue around truffle-contract bugs when using call methods
                 //    w/ non-default block numbers
                 // const state = await this.getState(true);
@@ -510,13 +504,13 @@ var Loan = function (_RedeemableERC) {
                 //   throw new Error('Bids can only be rejected during the review period.');
                 // }
 
-                _context10.next = 7;
+                _context10.next = 6;
                 return contract.rejectBids(this.uuid, options);
 
-              case 7:
+              case 6:
                 return _context10.abrupt('return', _context10.sent);
 
-              case 8:
+              case 7:
               case 'end':
                 return _context10.stop();
             }
