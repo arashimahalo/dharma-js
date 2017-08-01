@@ -1,6 +1,24 @@
 'use strict';
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _promise = require('babel-runtime/core-js/promise');
+
+var _promise2 = _interopRequireDefault(_promise);
+
+var _regenerator = require('babel-runtime/regenerator');
+
+var _regenerator2 = _interopRequireDefault(_regenerator);
+
+var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
+
+var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
+
+var _classCallCheck2 = require('babel-runtime/helpers/classCallCheck');
+
+var _classCallCheck3 = _interopRequireDefault(_classCallCheck2);
+
+var _createClass2 = require('babel-runtime/helpers/createClass');
+
+var _createClass3 = _interopRequireDefault(_createClass2);
 
 var _Loan = require('./Loan.js');
 
@@ -32,23 +50,19 @@ var _Constants2 = _interopRequireDefault(_Constants);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 var Loans = function () {
   function Loans(web3) {
-    _classCallCheck(this, Loans);
+    (0, _classCallCheck3.default)(this, Loans);
 
     this.web3 = web3;
     this.events = new _Events2.default(web3);
   }
 
-  _createClass(Loans, [{
+  (0, _createClass3.default)(Loans, [{
     key: 'create',
     value: function () {
-      var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee(data) {
-        return regeneratorRuntime.wrap(function _callee$(_context) {
+      var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(data) {
+        return _regenerator2.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
@@ -75,9 +89,9 @@ var Loans = function () {
   }, {
     key: 'get',
     value: function () {
-      var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee2(uuid) {
+      var _ref2 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2(uuid) {
         var web3, contract, data, loanData, signature, loanCreated, loanCreatedEvents, loanCreatedBlock, auctionPeriodEndBlock, reviewPeriodEndBlock, termBegin, termBeginEvents, block;
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+        return _regenerator2.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
@@ -115,7 +129,7 @@ var Loans = function () {
               case 14:
                 loanCreated = _context2.sent;
                 _context2.next = 17;
-                return new Promise(function (accept, reject) {
+                return new _promise2.default(function (accept, reject) {
                   loanCreated.get(function (err, loanCreatedEvents) {
                     if (err) reject(err);else accept(loanCreatedEvents);
                   });
@@ -166,7 +180,7 @@ var Loans = function () {
               case 39:
                 termBegin = _context2.sent;
                 _context2.next = 42;
-                return new Promise(function (resolve, reject) {
+                return new _promise2.default(function (resolve, reject) {
                   termBegin.get(function (err, termBeginEvents) {
                     if (err) reject(err);else resolve(termBeginEvents);
                   });
@@ -177,7 +191,7 @@ var Loans = function () {
 
                 loanData.termBeginBlockNumber = termBeginEvents[0].args.blockNumber;
                 _context2.next = 46;
-                return new Promise(function (resolve, reject) {
+                return new _promise2.default(function (resolve, reject) {
                   web3.eth.getBlock(loanData.termBeginBlockNumber, function (err, block) {
                     if (err) reject(err);else resolve(block);
                   });
@@ -206,7 +220,6 @@ var Loans = function () {
       return get;
     }()
   }]);
-
   return Loans;
 }();
 
