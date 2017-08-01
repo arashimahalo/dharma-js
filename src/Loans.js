@@ -137,16 +137,25 @@ var Loans = function () {
 
               case 17:
                 loanCreatedEvents = _context2.sent;
+
+                if (!(loanCreatedEvents.length === 0)) {
+                  _context2.next = 20;
+                  break;
+                }
+
+                return _context2.abrupt('return', null);
+
+              case 20:
                 loanCreatedBlock = loanCreatedEvents[0].args.blockNumber;
-                _context2.next = 21;
+                _context2.next = 23;
                 return contract.getAuctionEndBlock.call(uuid);
 
-              case 21:
+              case 23:
                 auctionPeriodEndBlock = _context2.sent;
-                _context2.next = 24;
+                _context2.next = 26;
                 return contract.getReviewPeriodEndBlock.call(uuid);
 
-              case 24:
+              case 26:
                 reviewPeriodEndBlock = _context2.sent;
 
 
@@ -156,56 +165,56 @@ var Loans = function () {
                 loanData.auctionPeriodLength = auctionPeriodEndBlock.minus(loanCreatedBlock);
                 loanData.reviewPeriodLength = reviewPeriodEndBlock.minus(auctionPeriodEndBlock);
 
-                _context2.next = 31;
+                _context2.next = 33;
                 return contract.getState.call(uuid);
 
-              case 31:
+              case 33:
                 loanData.state = _context2.sent;
 
                 loanData.state = loanData.state.toNumber();
 
                 if (!(loanData.state == _Constants2.default.ACCEPTED_STATE)) {
-                  _context2.next = 48;
+                  _context2.next = 50;
                   break;
                 }
 
-                _context2.next = 36;
+                _context2.next = 38;
                 return contract.getInterestRate.call(uuid);
 
-              case 36:
+              case 38:
                 loanData.interestRate = _context2.sent;
-                _context2.next = 39;
+                _context2.next = 41;
                 return this.events.termBegin({ uuid: uuid }, { fromBlock: 0, toBlock: 'latest' });
 
-              case 39:
+              case 41:
                 termBegin = _context2.sent;
-                _context2.next = 42;
+                _context2.next = 44;
                 return new _promise2.default(function (resolve, reject) {
                   termBegin.get(function (err, termBeginEvents) {
                     if (err) reject(err);else resolve(termBeginEvents);
                   });
                 });
 
-              case 42:
+              case 44:
                 termBeginEvents = _context2.sent;
 
                 loanData.termBeginBlockNumber = termBeginEvents[0].args.blockNumber;
-                _context2.next = 46;
+                _context2.next = 48;
                 return new _promise2.default(function (resolve, reject) {
                   web3.eth.getBlock(loanData.termBeginBlockNumber, function (err, block) {
                     if (err) reject(err);else resolve(block);
                   });
                 });
 
-              case 46:
+              case 48:
                 block = _context2.sent;
 
                 loanData.termBeginTimestamp = block.timestamp;
 
-              case 48:
+              case 50:
                 return _context2.abrupt('return', _Loan2.default.create(this.web3, loanData));
 
-              case 49:
+              case 51:
               case 'end':
                 return _context2.stop();
             }
