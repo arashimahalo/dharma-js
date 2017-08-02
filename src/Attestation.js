@@ -128,7 +128,7 @@ var Attestation = function () {
       return {
         r: signature[0],
         s: signature[1],
-        v: '0x' + web3.padLeft(v, 2)
+        v: '0x' + _Util2.default.padLeft(v, 2)
       };
     }
   }]);

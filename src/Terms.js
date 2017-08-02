@@ -52,11 +52,11 @@ var Terms = function () {
       var termLength = _Util2.default.stripZeroEx(this.web3.toHex(this.terms.termLength));
       var compounded = _Util2.default.stripZeroEx(this.web3.toHex(this.terms.compounded));
 
-      version = this.web3.padLeft(version, 2); // uint8
-      periodType = this.web3.padLeft(periodType, 2); // uint8
-      periodLength = this.web3.padLeft(periodLength, 64); // uint256
-      termLength = this.web3.padLeft(termLength, 64); // uint256
-      compounded = this.web3.padLeft(compounded, 2); // bool
+      version = _Util2.default.padLeft(version, 2); // uint8
+      periodType = _Util2.default.padLeft(periodType, 2); // uint8
+      periodLength = _Util2.default.padLeft(periodLength, 64); // uint256
+      termLength = _Util2.default.padLeft(termLength, 64); // uint256
+      compounded = _Util2.default.padLeft(compounded, 2); // bool
 
       return '0x' + version + periodType + periodLength + termLength + compounded;
     }
